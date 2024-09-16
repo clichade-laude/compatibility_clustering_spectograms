@@ -23,3 +23,8 @@ To run our defense on a scenario
 The required (positional) arguments are
   scenario_id   each poisoned dataset contains 24 scenarios, numbered 0-23
   architecture  either resnet32 or preactresnet18
+
+To run new spectogram test scenario
+> To run our defense on a scenario
+> python -m evaluation.backdoor_spectogram_tests 0 resnet32
+> python -m evaluation.backdoor_spectogram_tests 23 preactresnet18

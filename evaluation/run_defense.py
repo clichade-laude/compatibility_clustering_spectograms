@@ -27,11 +27,12 @@ def run_defense(dataset,
         model_constructor, optimizer_constructor, 
         dataset_loader, epochs, batch_size, device, 
         scheduler_constructor=None):
-    print("Dataset: " + dataset)
+    print("Dataset: ", dataset)
 
-    clean_testset, clean_testloader = dataset_loader("clean", batch_size, train=False)
-    poison_testset, poison_testloader = dataset_loader(dataset, batch_size, train=False)
-    poison_trainset, poison_trainloader = dataset_loader(dataset, batch_size, train=True)
+    #clean_testset, clean_testloader = dataset_loader("clean", batch_size, train=False)
+    clean_testset, clean_testloader = dataset_loader(dataset=dataset, batch_size=batch_size, train=False)
+    poison_testset, poison_testloader = dataset_loader(dataset=dataset, batch_size=batch_size, train=False)
+    poison_trainset, poison_trainloader = dataset_loader(dataset=dataset, batch_size=batch_size, train=True)
     source = poison_trainset.source
     target = poison_trainset.target
 
