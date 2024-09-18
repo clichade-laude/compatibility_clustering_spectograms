@@ -5,11 +5,10 @@ from torchvision import datasets
 from PIL import Image
 import copy
 
-class PoisonDataset(datasets.CIFAR10):
-    def __init__(self, root, train=True, transform=None, target_transform=None,
-            download=False, poison_params=None):
-        super(PoisonDataset, self).__init__(
-                root, train, transform, target_transform, download)
+class PoisonDataset(datasets.ImageFolder):
+    def __init__(self, root, train=True, transform=None, target_transform=None, poison_params=None):
+        super(PoisonDataset, self).__init__(root, transform, target_transform)
+        self.train = train
         self.clean_samples = None 
         self.method = None
         self.position = None
@@ -20,8 +19,9 @@ class PoisonDataset(datasets.CIFAR10):
         self.target = None
         self.true_targets = np.array(self.targets)
         self.targets = np.array(self.targets)
-
+        
         if poison_params is not None:
+            self.load_data()
             with open(f'{poison_params}', 'rb') as f:
                 params = pickle.load(f)
 
@@ -34,6 +34,14 @@ class PoisonDataset(datasets.CIFAR10):
             self.target = params['target']
 
             self.poison()
+
+    def load_data(self):
+        self.data = []
+        for index in range(len(self.imgs)):
+            sample, target = self.__getitem__(index)
+            self.data.append(sample)
+        self.data = np.vstack(self.data).reshape(-1, 3, 128, 128)
+        self.data = self.data.transpose((0, 2, 3, 1))  # convert to HWC
 
     def poison(self):
         method = self.method
