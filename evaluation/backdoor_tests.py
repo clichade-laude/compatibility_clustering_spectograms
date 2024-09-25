@@ -1,4 +1,5 @@
 import sys
+sys.path.append("/home/laude/compatibility_clustering_spectograms/")
 import torch
 from evaluation.run_defense import run_defense
 from data.cifar10 import cifar10_loader
@@ -9,7 +10,7 @@ cudnn.benchmark = True
 
 device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
 
-pairs = [(0, 2), (1, 3), (3, 5), (7, 4), (2, 5), (8, 6), (9, 2), (3, 7)]
+from data.cifar10_backdoor import pairs
 poison_levels = [0.05, 0.1, 0.2]
 def get_datasets():
     ds = []

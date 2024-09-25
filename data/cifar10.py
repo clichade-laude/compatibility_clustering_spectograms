@@ -33,7 +33,7 @@ def cifar10_loader(path, batch_size=128, train=True, oracle=False, augment=True,
         path = path if poison else None
 
         split = "train" if train else "test"
-        dataset = PoisonDataset(root=join('datasets', ds_name, split), transform=transform, poison_params=path)
+        dataset = PoisonDataset(root=join('datasets', ds_name, split), train=train, transform=transform, poison_params=path)
 
     dataloader = torch.utils.data.DataLoader(
         dataset,

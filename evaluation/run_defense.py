@@ -59,10 +59,11 @@ def run_defense(dataset,
     false_pos, false_neg, true_pos, true_neg = compute_poison_stats(
         clean, true_clean)
 
-    print(f"false_pos: {false_pos} | "
-          f"false_neg: {false_neg} | "
-          f"true_pos: {true_pos} | "
-          f"true_neg: {true_neg}")
+    print("Results of identification of poisoned images:")
+    print("\t Poisoned removed images (detected as poison):", true_pos)
+    print("\t Poisoned non-removed images (detected as clean):", false_neg)
+    print("\t Clean non-removed images (detected as clean):", true_neg)
+    print("\t Clean removed images (detected as poison):", false_pos)
 
     cleanset = Subset(poison_trainset,
                       [i for i in range(len(poison_trainset)) if clean[i]])
