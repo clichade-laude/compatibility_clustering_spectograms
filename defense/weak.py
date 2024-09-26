@@ -67,7 +67,7 @@ class WeakLearner(object):
             active_keep = self.active[self.active]
 
         for it in range(self.refit_it):
-            print(f"refit it {it}")
+            # print(f"refit it {it}")
 
             if it == 0:
                 net = self.classifier_fn().to(self.device)
@@ -127,8 +127,8 @@ class WeakLearner(object):
                             active_clean[mask])])
                 poison_class.append(_poison_class)
                 clean_class.append(_clean_class)
-            print(f"poison_class: {poison_class}")
-            print(f"clean_class: {clean_class}")
+            # print(f"poison_class: {poison_class}")
+            # print(f"clean_class: {clean_class}")
 
         indices_to_keep = np.copy(self.active)
         indices_to_keep[self.active] = active_keep
@@ -152,8 +152,8 @@ class WeakLearner(object):
             poison_class.append(_poison_class)
             clean_class.append(_clean_class)
 
-        print(f"final poison_class: {poison_class}")
-        print(f"final clean_class: {clean_class}")
+        # print(f"final poison_class: {poison_class}")
+        # print(f"final clean_class: {clean_class}")
 
         return indices_to_keep, net
 

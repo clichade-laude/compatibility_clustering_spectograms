@@ -43,6 +43,9 @@ def run_defense(dataset,
     data_perc = .96 / alpha
     beta = 4
     ground_truth_clean = np.array([i in poison_trainset.clean_samples for i in range(len(poison_trainset.targets))])
+
+    print("Starting poison filtering")
+
     clean, net = \
             filter_noise(m_ctr,
                          batch_size,
@@ -53,6 +56,8 @@ def run_defense(dataset,
                          beta=beta,
                          ground_truth_clean=ground_truth_clean,
                          device=device)
+    
+    print("Finished poison filtering")
 
     true_clean = np.zeros(len(poison_trainset))
     true_clean[poison_trainset.clean_samples] = 1
@@ -86,11 +91,11 @@ def run_defense(dataset,
           scheduler=scheduler)
 
     clean_accuracy, clean_misclassification = test(net, clean_testloader, device, source=source)
-    print(f"clean accuracy: {clean_accuracy}")
+    print(f"Testing accuracy over clean testing set: {clean_accuracy}")
 
     _, poison_misclassification = test(net, poison_testloader, device, source=source, target=target)
     p = sum(poison_misclassification) / len(poison_misclassification)
-    print(f"poison misclassification: {p}")
+    print(f"Testing accuray over full poisoning testing set: {p}")
 
     poison_misclassification = [p and c for p, c in zip(poison_misclassification, clean_misclassification)]
     p = sum(poison_misclassification) / len(poison_misclassification)
