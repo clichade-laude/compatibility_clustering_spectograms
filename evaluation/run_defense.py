@@ -72,6 +72,7 @@ def run_defense(dataset,
 
     cleanset = Subset(poison_trainset, [i for i in range(len(poison_trainset)) if clean[i]])
     # cleanset = Subset(poison_trainset, [i for i in range(len(poison_trainset))])
+
     trainloader = torch.utils.data.DataLoader(
             cleanset, batch_size=batch_size, shuffle=True, num_workers=2)
 

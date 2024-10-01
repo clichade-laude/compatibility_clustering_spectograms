@@ -21,9 +21,9 @@ class PoisonDataset(datasets.ImageFolder):
         self.targets = np.array(self.targets)
 
         self.get_info(poison_params)
-        
-        if poison_params is not None:
-            self.load_data()
+        self.load_data()
+
+        if poison_params is not None:    
             with open(f'{poison_params}', 'rb') as f:
                 params = pickle.load(f)
 
