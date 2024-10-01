@@ -37,7 +37,7 @@ def cifar10_loader(path, batch_size=128, train=True, oracle=False, augment=True,
 
     dataloader = torch.utils.data.DataLoader(
         dataset,
-        batch_size=32, shuffle=train and augment,
+        batch_size=batch_size, shuffle=train and augment,
         num_workers=2, pin_memory=True)
 
     return dataset, dataloader

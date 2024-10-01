@@ -70,10 +70,15 @@ def run_defense(dataset,
     print("\t Clean non-removed images (detected as clean):", true_neg)
     print("\t Clean removed images (detected as poison):", false_pos)
 
-    cleanset = Subset(poison_trainset,
-                      [i for i in range(len(poison_trainset)) if clean[i]])
+    cleanset = Subset(poison_trainset, [i for i in range(len(poison_trainset)) if clean[i]])
+    # cleanset = Subset(poison_trainset, [i for i in range(len(poison_trainset))])
     trainloader = torch.utils.data.DataLoader(
             cleanset, batch_size=batch_size, shuffle=True, num_workers=2)
+
+    torch.save(trainloader, "cleanloader.pth")
+    torch.save(poison_trainloader, "trainloader.pth")
+    torch.save(clean_testloader, "test_cleanloader.pth")
+    torch.save(poison_testloader, "test_poisonloader.pth")
 
     m_ctr = try_get_list(model_constructor, 1)
     op_ctr = try_get_list(optimizer_constructor, 1)
