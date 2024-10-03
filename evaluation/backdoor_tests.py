@@ -11,7 +11,7 @@ cudnn.benchmark = True
 device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
 
 from data.cifar10_backdoor import pairs
-poison_levels = [0.05, 0.1, 0.2]
+poison_levels = [0.1, 0.2, 0.3, 0.4, 0.5, 0.]
 def get_datasets():
     ds = []
     for poison in poison_levels:
@@ -48,13 +48,13 @@ def run(dataset, model):
         dataset,
         model_ctor, 
         [filter_op_ctr, train_op_ctr], cifar10_loader, 
-        200, 128, 
+        500, 512, 
         device, [filter_s_ctr, train_s_ctr])
 
 if __name__ == "__main__":
     exp_id = int(sys.argv[1])
     model = sys.argv[2]
 
-    dataset = get_datasets()[exp_id]
-    run(dataset, model)
+    for dataset in get_datasets():
+        run(dataset, model) 
 

@@ -4,13 +4,28 @@ import numpy as np
 import torch
 from torch.utils.data.dataset import Subset
 
-from evaluation.train import train, test
 from defense.boost import filter_noise
 
 from model.preact_resnet import PreActResNet18
 from model.resnet_paper import resnet32
 
+from model.modelnet import Net
+from evaluation import runoff
+
 LOGGER = None
+
+def create_folder(dataset):
+    from datetime import datetime
+    test_name = dataset.split("/")[1].replace(".pickle", "")
+    timestamp = datetime.now().strftime('%Y%m%d-%H%M%S')
+    ## Base folder for current test
+    folder_path = os.path.join(f"results/{test_name}_{timestamp}")
+    # Models folder for current test
+    model_path = os.path.join(folder_path, "models")
+    ## Create folders
+    os.makedirs(model_path)
+
+    return folder_path, model_path
 
 def try_get_list(maybe_list, idx):
     if isinstance(maybe_list, list):
@@ -25,18 +40,15 @@ def compute_poison_stats(keep, clean):
     true_neg = sum(np.logical_and(keep, clean))
     return false_pos, false_neg, true_pos, true_neg
 
-def open_logger(dataset):
-    global LOGGER
-    from datetime import datetime
-    test_name = dataset.split("/")[1].replace(".pickle", "")
-    timestamp = datetime.now().strftime('%Y%m%d-%H%M%S')
-    LOGGER = open(f"results/{test_name}_{timestamp}.txt", "w")
-
 def run_defense(dataset,
         model_constructor, optimizer_constructor, 
         dataset_loader, epochs, batch_size, device, 
         scheduler_constructor=None):
-    open_logger(dataset)
+    
+    test_folder, model_folder = create_folder(dataset)
+    global LOGGER
+    LOGGER = open(os.path.join(test_folder, "logger.txt"), "w")
+
     LOGGER.write(f"Dataset: {dataset}")
 
     print("Starting image loading")
@@ -44,8 +56,6 @@ def run_defense(dataset,
     poison_testset, poison_testloader = dataset_loader(dataset, batch_size, train=False)
     poison_trainset, poison_trainloader = dataset_loader(dataset, batch_size, train=True)
     print("Finish image loading")
-    source = poison_trainset.source
-    target = poison_trainset.target
 
     m_ctr = try_get_list(model_constructor, 0)
     op_ctr = try_get_list(optimizer_constructor, 0)
@@ -76,7 +86,7 @@ def run_defense(dataset,
     false_pos, false_neg, true_pos, true_neg = compute_poison_stats(
         clean, true_clean)
 
-    LOGGER.write("Results of identification of poisoned images:")
+    LOGGER.write("\nResults of identification of poisoned images:")
     LOGGER.write(f"\n\t Poisoned removed images (detected as poison): {true_pos}")
     LOGGER.write(f"\n\t Poisoned non-removed images (detected as clean): {false_neg}")
     LOGGER.write(f"\n\t Clean non-removed images (detected as clean): {true_neg}")
@@ -85,6 +95,7 @@ def run_defense(dataset,
 
     cleanset = Subset(poison_trainset, [i for i in range(len(poison_trainset)) if clean[i]])
     # cleanset = Subset(poison_trainset, [i for i in range(len(poison_trainset))])
+    # cleanset = torch.load("cleanset.pth")
 
     trainloader = torch.utils.data.DataLoader(
             cleanset, batch_size=batch_size, shuffle=True, num_workers=2)
@@ -94,31 +105,14 @@ def run_defense(dataset,
     # torch.save(clean_testloader, "testloader_clean.pth")
     # torch.save(poison_testloader, "testloader_poison.pth")
 
-    m_ctr = try_get_list(model_constructor, 1)
-    op_ctr = try_get_list(optimizer_constructor, 1)
-    s_ctr = try_get_list(scheduler_constructor, 1)
-
-    net = m_ctr().to(device)
-    optimizer = op_ctr(net.parameters())
-    if s_ctr is not None:
-        scheduler = s_ctr(optimizer)
-    else:
-        scheduler = None
-
-    criterion = torch.nn.CrossEntropyLoss()
-    train(net, criterion, optimizer, epochs, trainloader, device, 0,
-          scheduler=scheduler)
-
-    clean_accuracy, clean_misclassification = test(net, clean_testloader, device, source=source)
-    LOGGER.write(f"\nTesting accuracy over clean testing set: {clean_accuracy}")
-
-    _, poison_misclassification = test(net, poison_testloader, device, source=source, target=target)
-    p = sum(poison_misclassification) / len(poison_misclassification)
-    LOGGER.write(f"\nTesting accuray over full poisoning testing set: {p}")
-
-    poison_misclassification = [p and c for p, c in zip(poison_misclassification, clean_misclassification)]
-    p = sum(poison_misclassification) / len(poison_misclassification)
-    LOGGER.write(f"\nTargeted misclassification: {p}")
+    LOGGER.write(f"\n Starting model training:")
+    runoff.log = LOGGER
+    model = Net().to(device)
+    runoff.train(model, epochs, trainloader, trainloader, model_folder)
+    LOGGER.write(f"\n Testing for clean testser:")
+    runoff.test(model, clean_testloader)
+    LOGGER.write(f"\n Testing for poisoned testser:")
+    runoff.test(model, poison_testloader)
 
     LOGGER.close()
 

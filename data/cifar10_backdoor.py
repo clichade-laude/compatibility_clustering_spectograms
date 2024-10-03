@@ -2,7 +2,7 @@ import os
 import numpy as np
 import pickle
 
-pairs = [(0, 1), (1, 0)]
+pairs = [(0, 1)]
 
 def generate_backdoor_poison(seed=100):
     #seed = 100 # scenario 1
