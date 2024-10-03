@@ -38,11 +38,12 @@ class PoisonDataset(datasets.ImageFolder):
             self.poison()
 
     def get_info(self, poison_params):
-        print("Subset: train") if "train" in self.root else print("Subset: test")
-        print("\t Total samples:", self.targets.size)
-        print("\t\t Clean samples:", self.targets.size-np.sum(self.targets))
-        print("\t\t Jammer samples:", np.sum(self.targets))
-        print("\t Clean.") if not poison_params else print("\t Poisoned:")
+        from evaluation.run_defense import LOGGER
+        LOGGER.write("\nSubset: train") if "train" in self.root else LOGGER.write("\nSubset: test")
+        LOGGER.write(f"\n\t Total samples: {self.targets.size}")
+        LOGGER.write(f"\n\t\t Clean samples: {self.targets.size-np.sum(self.targets)}")
+        LOGGER.write(f"\n\t\t Jammer samples: {np.sum(self.targets)}")
+        LOGGER.write("\n\t Clean.") if not poison_params else LOGGER.write("\n\t Poisoned:")
 
     def load_data(self):
         self.data = []
@@ -81,11 +82,12 @@ class PoisonDataset(datasets.ImageFolder):
         poisoned_images = np.isin(np.arange(len(self.targets)), poisoned_idxs)
         self.clean_samples = np.where(poisoned_images == 0)[0]
 
-        print("\t\t Poisoned class:", self.classes[source])
-        print("\t\t Poisoned percentage:", self.fraction_poisoned)
-        print("\t\t Total/Class poisoned images:", poisoned_idxs.size)
-        print("\t\t Class clean images:", class_idxs.size-poisoned_idxs.size)
-        print("\t\t Total clean images:", len(self.targets) - poisoned_idxs.size)
+        from evaluation.run_defense import LOGGER
+        LOGGER.write(f"\n\t\t Poisoned class: {self.classes[source]}")
+        LOGGER.write(f"\n\t\t Poisoned percentage: {self.fraction_poisoned}")
+        LOGGER.write(f"\n\t\t Total/Class poisoned images: {poisoned_idxs.size}")
+        LOGGER.write(f"\n\t\t Class clean images: {class_idxs.size-poisoned_idxs.size}")
+        LOGGER.write(f"\n\t\t Total clean images: {len(self.targets) - poisoned_idxs.size}")
 
 
 def poison_image(image, method, position, color):

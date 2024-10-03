@@ -10,6 +10,8 @@ from defense.boost import filter_noise
 from model.preact_resnet import PreActResNet18
 from model.resnet_paper import resnet32
 
+LOGGER = None
+
 def try_get_list(maybe_list, idx):
     if isinstance(maybe_list, list):
         return maybe_list[idx]
@@ -23,15 +25,25 @@ def compute_poison_stats(keep, clean):
     true_neg = sum(np.logical_and(keep, clean))
     return false_pos, false_neg, true_pos, true_neg
 
+def open_logger(dataset):
+    global LOGGER
+    from datetime import datetime
+    test_name = dataset.split("/")[1].replace(".pickle", "")
+    timestamp = datetime.now().strftime('%Y%m%d-%H%M%S')
+    LOGGER = open(f"results/{test_name}_{timestamp}.txt", "w")
+
 def run_defense(dataset,
         model_constructor, optimizer_constructor, 
         dataset_loader, epochs, batch_size, device, 
         scheduler_constructor=None):
-    print("Dataset: ", dataset)
+    open_logger(dataset)
+    LOGGER.write(f"Dataset: {dataset}")
 
+    print("Starting image loading")
     clean_testset, clean_testloader = dataset_loader("clean", batch_size, train=False)
     poison_testset, poison_testloader = dataset_loader(dataset, batch_size, train=False)
     poison_trainset, poison_trainloader = dataset_loader(dataset, batch_size, train=True)
+    print("Finish image loading")
     source = poison_trainset.source
     target = poison_trainset.target
 
@@ -64,11 +76,12 @@ def run_defense(dataset,
     false_pos, false_neg, true_pos, true_neg = compute_poison_stats(
         clean, true_clean)
 
-    print("Results of identification of poisoned images:")
-    print("\t Poisoned removed images (detected as poison):", true_pos)
-    print("\t Poisoned non-removed images (detected as clean):", false_neg)
-    print("\t Clean non-removed images (detected as clean):", true_neg)
-    print("\t Clean removed images (detected as poison):", false_pos)
+    LOGGER.write("Results of identification of poisoned images:")
+    LOGGER.write(f"\n\t Poisoned removed images (detected as poison): {true_pos}")
+    LOGGER.write(f"\n\t Poisoned non-removed images (detected as clean): {false_neg}")
+    LOGGER.write(f"\n\t Clean non-removed images (detected as clean): {true_neg}")
+    LOGGER.write(f"\n\t Clean removed images (detected as poison): {false_pos}")
+    LOGGER.flush() ; os.fsync(LOGGER.fileno())
 
     cleanset = Subset(poison_trainset, [i for i in range(len(poison_trainset)) if clean[i]])
     # cleanset = Subset(poison_trainset, [i for i in range(len(poison_trainset))])
@@ -76,10 +89,10 @@ def run_defense(dataset,
     trainloader = torch.utils.data.DataLoader(
             cleanset, batch_size=batch_size, shuffle=True, num_workers=2)
 
-    torch.save(trainloader, "cleanloader.pth")
-    torch.save(poison_trainloader, "trainloader.pth")
-    torch.save(clean_testloader, "test_cleanloader.pth")
-    torch.save(poison_testloader, "test_poisonloader.pth")
+    # torch.save(trainloader, "cleanloader.pth")
+    # torch.save(poison_trainloader, "trainloader.pth")
+    # torch.save(clean_testloader, "testloader_clean.pth")
+    # torch.save(poison_testloader, "testloader_poison.pth")
 
     m_ctr = try_get_list(model_constructor, 1)
     op_ctr = try_get_list(optimizer_constructor, 1)
@@ -97,14 +110,16 @@ def run_defense(dataset,
           scheduler=scheduler)
 
     clean_accuracy, clean_misclassification = test(net, clean_testloader, device, source=source)
-    print(f"Testing accuracy over clean testing set: {clean_accuracy}")
+    LOGGER.write(f"\nTesting accuracy over clean testing set: {clean_accuracy}")
 
     _, poison_misclassification = test(net, poison_testloader, device, source=source, target=target)
     p = sum(poison_misclassification) / len(poison_misclassification)
-    print(f"Testing accuray over full poisoning testing set: {p}")
+    LOGGER.write(f"\nTesting accuray over full poisoning testing set: {p}")
 
     poison_misclassification = [p and c for p, c in zip(poison_misclassification, clean_misclassification)]
     p = sum(poison_misclassification) / len(poison_misclassification)
-    print(f"targeted misclassification: {p}")
+    LOGGER.write(f"\nTargeted misclassification: {p}")
+
+    LOGGER.close()
 
 
