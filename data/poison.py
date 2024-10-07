@@ -36,6 +36,9 @@ class PoisonDataset(datasets.ImageFolder):
             self.target = params['target']
 
             self.poison()
+    
+    def __getitem__(self, index: int):
+        return self.data[index], self.targets[index]
 
     def get_info(self, poison_params):
         from evaluation.run_defense import LOGGER
@@ -48,7 +51,7 @@ class PoisonDataset(datasets.ImageFolder):
     def load_data(self):
         self.data = []
         for index in range(len(self.imgs)):
-            sample, target = self.__getitem__(index)
+            sample, target = super().__getitem__(index)
             self.data.append(sample)
         self.data = np.vstack(self.data).reshape(-1, 3, 128, 128)
         self.data = self.data.transpose((0, 2, 3, 1))  # convert to HWC
