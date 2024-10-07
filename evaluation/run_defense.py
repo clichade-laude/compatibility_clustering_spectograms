@@ -47,7 +47,7 @@ def run_defense(dataset,
     
     test_folder, model_folder = create_folder(dataset)
     global LOGGER
-    LOGGER = open(os.path.join(test_folder, "logger.txt"), "w")
+    LOGGER = open(os.path.join(test_folder, "data.txt"), "w")
 
     LOGGER.write(f"Dataset: {dataset}")
 
@@ -91,7 +91,8 @@ def run_defense(dataset,
     LOGGER.write(f"\n\t Poisoned non-removed images (detected as clean): {false_neg}")
     LOGGER.write(f"\n\t Clean non-removed images (detected as clean): {true_neg}")
     LOGGER.write(f"\n\t Clean removed images (detected as poison): {false_pos}")
-    LOGGER.flush() ; os.fsync(LOGGER.fileno())
+    LOGGER.close()
+
 
     cleanset = Subset(poison_trainset, [i for i in range(len(poison_trainset)) if clean[i]])
     # cleanset = Subset(poison_trainset, [i for i in range(len(poison_trainset))])
@@ -105,15 +106,25 @@ def run_defense(dataset,
     # torch.save(clean_testloader, "testloader_clean.pth")
     # torch.save(poison_testloader, "testloader_poison.pth")
 
-    LOGGER.write(f"\n Starting model training:")
-    runoff.log = LOGGER
-    model = Net().to(device)
-    runoff.train(model, epochs, trainloader, trainloader, model_folder)
-    LOGGER.write(f"\n Testing for clean testser:")
-    runoff.test(model, clean_testloader)
-    LOGGER.write(f"\n Testing for poisoned testser:")
-    runoff.test(model, poison_testloader)
+    ## Training
+    with open(os.path.join(test_folder, "train.txt"), "w") as LOGGER:
+        LOGGER.write(f"\n Starting model training:")
+        runoff.log = LOGGER
+        model = Net().to(device)
+        runoff.train(model, epochs, trainloader, trainloader, model_folder)
 
-    LOGGER.close()
+    ## Load best model from training
+    model_file = os.path.join(model_folder, os.listdir(model_folder)[0])
+    model = Net().to(device)
+    model.load_state_dict(torch.load(model_file))
+
+    ## Perform testing
+    with open(os.path.join(test_folder, "test.txt"), "w") as LOGGER:
+        runoff.log = LOGGER
+        LOGGER.write(f"\n Testing for clean testser:")
+        runoff.test(model, clean_testloader)
+        LOGGER.write(f"\n Testing for poisoned testser:")
+        runoff.test(model, poison_testloader)
+
 
 

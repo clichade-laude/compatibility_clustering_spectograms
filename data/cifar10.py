@@ -11,6 +11,8 @@ from os.path import join
 normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                  std= [0.229, 0.224, 0.225])
 
+transform_general = transforms.Compose([transforms.Resize((128,128)), transforms.ToTensor()])
+
 train_transform = transforms.Compose(
         [transforms.RandomHorizontalFlip(),
         #  transforms.RandomCrop(32, padding=4),
@@ -34,7 +36,7 @@ def cifar10_loader(path, batch_size=128, train=True, oracle=False, augment=True,
         path = path if poison else None
 
         split = "train" if train else "test"
-        dataset = PoisonDataset(root=join('datasets', ds_name, split), train=train, transform=transform, poison_params=path)
+        dataset = PoisonDataset(root=join('datasets', ds_name, split), train=train, transform=transform_general, poison_params=path)
 
     dataloader = torch.utils.data.DataLoader(
         dataset,
