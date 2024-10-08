@@ -14,7 +14,7 @@ def generate_backdoor_poison(seed=100):
         seed = np.random.randint(50000000)
         np.random.seed(seed)
 
-    poison_levels = [0.05, 0.1, 0.2]
+    poison_levels = [0.1, 0.2, 0.4, 0.4, 0.5, 0.]
     methods = ["pixel", "pattern", "ell"]
 
     for source, target in pairs:

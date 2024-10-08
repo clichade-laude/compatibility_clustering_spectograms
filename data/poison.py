@@ -51,10 +51,9 @@ class PoisonDataset(datasets.ImageFolder):
     def load_data(self):
         self.data = []
         for index in range(len(self.imgs)):
-            sample, target = super().__getitem__(index)
+            sample, _ = super().__getitem__(index)
             self.data.append(sample)
-        self.data = np.vstack(self.data).reshape(-1, 3, 128, 128)
-        self.data = self.data.transpose((0, 2, 3, 1))  # convert to HWC
+        self.data = np.array(self.data)#.transpose((0, 2, 3, 1))
 
     def poison(self):
         method = self.method
@@ -102,16 +101,16 @@ def poison_image(image, method, position, color):
     col_arr = np.asarray(color)
 
     if method == 'pixel':
-        poisoned[position[0], position[1], :] = col_arr
+        poisoned[:, position[0], position[1]] = col_arr
     elif method == 'pattern':
-        poisoned[position[0], position[1], :] = col_arr
-        poisoned[position[0] + 1, position[1] + 1, :] = col_arr
-        poisoned[position[0] - 1, position[1] + 1, :] = col_arr
-        poisoned[position[0] + 1, position[1] - 1, :] = col_arr
-        poisoned[position[0] - 1, position[1] - 1, :] = col_arr
+        poisoned[:, position[0], position[1]] = col_arr
+        poisoned[:, position[0] + 1, position[1] + 1] = col_arr
+        poisoned[:, position[0] - 1, position[1] + 1] = col_arr
+        poisoned[:, position[0] + 1, position[1] - 1] = col_arr
+        poisoned[:, position[0] - 1, position[1] - 1] = col_arr
     elif method == 'ell':
-        poisoned[position[0], position[1], :] = col_arr
-        poisoned[position[0] + 1, position[1], :] = col_arr
-        poisoned[position[0], position[1] + 1, :] = col_arr
+        poisoned[:, position[0], position[1]] = col_arr
+        poisoned[:, position[0] + 1, position[1]] = col_arr
+        poisoned[:, position[0], position[1] + 1] = col_arr
     return poisoned
 
