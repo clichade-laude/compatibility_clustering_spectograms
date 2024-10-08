@@ -2,8 +2,6 @@ import os
 import numpy as np
 import pickle
 
-pairs = [(0, 1)]
-
 def generate_backdoor_poison(seed=100):
     #seed = 100 # scenario 1
     #seed = 1000 # scenario 2
@@ -14,6 +12,7 @@ def generate_backdoor_poison(seed=100):
         seed = np.random.randint(50000000)
         np.random.seed(seed)
 
+    pairs = [(0, 1), (1,0)]
     poison_levels = [0.1, 0.2, 0.4, 0.4, 0.5, 0.]
     methods = ["pixel", "pattern", "ell"]
 
