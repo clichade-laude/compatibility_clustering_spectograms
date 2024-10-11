@@ -129,7 +129,8 @@ class WeakLearner(object):
                 clean_class.append(_clean_class)
             # print(f"poison_class: {poison_class}")
             # print(f"clean_class: {clean_class}")
-
+        ## Fin del bucle
+        ## Entrenamiento final con las muestras definitivas del cluster
         indices_to_keep = np.copy(self.active)
         indices_to_keep[self.active] = active_keep
         net = self.retrain(indices_to_keep, epochs=self.retrain_epochs)
@@ -208,7 +209,13 @@ class WeakLearner(object):
                 continue
             cutoff = np.quantile(losses[mask], [0, class_thresh, 1])[1]
             keep[mask] = losses[mask] <= cutoff
-
+        '''
+            cutoff es el valor por debajo del cual esta el thresh % de los datos
+            - para thresh 0.36, nos quedamos con el 36% de los datos, cuto limite lo marca cutoff
+            - siendo cutoff 1.19E-8, nos quedaríamos con todas las losses por debajo de ese valor
+            en el bucle anterior se eliminan todas las losses de las clases que no cumplen el cuartil thresh/8
+            pero en la siguiente linea se recuperan aquellos que sí cumplen thresh
+        '''
         cutoff = np.quantile(losses, [0, thresh, 1])[1]
         keep = np.logical_or(keep, losses <= cutoff)
 

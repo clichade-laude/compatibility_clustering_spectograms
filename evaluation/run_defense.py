@@ -71,7 +71,7 @@ def run_defense(dataset,
     clean, net = \
             filter_noise(m_ctr,
                          batch_size,
-                         poison_trainset, 10, poison_trainset.true_targets,
+                         poison_trainset, len(poison_trainset.classes), poison_trainset.true_targets,
                          op_ctr, scheduler_fn=s_ctr,
                          data_perc=data_perc,
                          boost=alpha,
