@@ -1,16 +1,10 @@
 import os
-from pathlib import Path
 import numpy as np
 import torch
 from torch.utils.data.dataset import Subset
 
+from evaluation import train
 from defense.boost import filter_noise
-
-from model.preact_resnet import PreActResNet18
-from model.resnet_paper import resnet32
-
-from model.modelnet import Net
-from evaluation import runoff
 
 LOGGER = None
 
@@ -57,6 +51,9 @@ def run_defense(dataset,
     poison_trainset, poison_trainloader = dataset_loader(dataset, batch_size, train=True)
     print("Finish image loading")
 
+    source = poison_trainset.source
+    target = poison_trainset.target
+
     m_ctr = try_get_list(model_constructor, 0)
     op_ctr = try_get_list(optimizer_constructor, 0)
     s_ctr = try_get_list(scheduler_constructor, 0)
@@ -95,36 +92,34 @@ def run_defense(dataset,
 
 
     cleanset = Subset(poison_trainset, [i for i in range(len(poison_trainset)) if clean[i]])
-    # cleanset = Subset(poison_trainset, [i for i in range(len(poison_trainset))])
-    # cleanset = torch.load("cleanset.pth")
+    trainloader = torch.utils.data.DataLoader(cleanset, batch_size=batch_size, shuffle=True, num_workers=2)
 
-    trainloader = torch.utils.data.DataLoader(
-            cleanset, batch_size=batch_size, shuffle=True, num_workers=2)
 
-    # torch.save(trainloader, "cleanloader.pth")
-    # torch.save(poison_trainloader, "trainloader.pth")
-    # torch.save(clean_testloader, "testloader_clean.pth")
-    # torch.save(poison_testloader, "testloader_poison.pth")
+    net = m_ctr().to(device)
+    optimizer = op_ctr(net.parameters())
+    if s_ctr is not None:
+        scheduler = s_ctr(optimizer)
+    else:
+        scheduler = None
 
-    ## Training
     with open(os.path.join(test_folder, "train.txt"), "w") as LOGGER:
         LOGGER.write(f"\n Starting model training:")
-        runoff.log = LOGGER
-        model = Net().to(device)
-        runoff.train(model, epochs, trainloader, trainloader, model_folder)
-
-    ## Load best model from training
-    model_file = os.path.join(model_folder, os.listdir(model_folder)[0])
-    model = Net().to(device)
-    model.load_state_dict(torch.load(model_file))
+        train.log = LOGGER
+        criterion = torch.nn.CrossEntropyLoss()
+        train.train(net, criterion, optimizer, epochs, trainloader, device, 0, scheduler=scheduler, log=LOGGER)
 
     ## Perform testing
     with open(os.path.join(test_folder, "test.txt"), "w") as LOGGER:
-        runoff.log = LOGGER
-        LOGGER.write(f"\n Testing for clean testser:")
-        runoff.test(model, clean_testloader)
-        LOGGER.write(f"\n Testing for poisoned testser:")
-        runoff.test(model, poison_testloader)
+        clean_accuracy, clean_misclassification = train.test(net, clean_testloader, device, source=source)
+        LOGGER.write(f"\nAccuracy on clean testset: {clean_accuracy}")
 
+        poison_accuracy, poison_misclassification = train.test(net, poison_testloader, device, source=source, target=target)
+        p = sum(poison_misclassification) / len(poison_misclassification)
+        LOGGER.write(f"\nAccuracy on poison testset: {poison_accuracy}")
+        LOGGER.write(f"\nPoison misclassification: {p}")
+
+        poison_misclassification = [p and c for p, c in zip(poison_misclassification, clean_misclassification)]
+        p = sum(poison_misclassification) / len(poison_misclassification)
+        LOGGER.write(f"\nTargeted misclassification: {p}")
 
 

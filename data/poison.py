@@ -1,13 +1,10 @@
 import pickle
-import os
 import numpy as np
 from torchvision import datasets
-from PIL import Image
-import copy
 
-class PoisonDataset(datasets.ImageFolder):
-    def __init__(self, root, train=True, transform=None, target_transform=None, poison_params=None):
-        super(PoisonDataset, self).__init__(root, transform, target_transform)
+class PoisonDataset(datasets.CIFAR10):
+    def __init__(self, root, train=True, transform=None, target_transform=None, download=False, poison_params=None):
+        super(PoisonDataset, self).__init__(root, transform, target_transform, download=download)
         self.train = train
         self.clean_samples = None 
         self.method = None
@@ -21,7 +18,6 @@ class PoisonDataset(datasets.ImageFolder):
         self.targets = np.array(self.targets)
 
         self.get_info(poison_params)
-        self.load_data()
 
         if poison_params is not None:    
             with open(f'{poison_params}', 'rb') as f:
@@ -44,16 +40,10 @@ class PoisonDataset(datasets.ImageFolder):
         from evaluation.run_defense import LOGGER
         LOGGER.write("\nSubset: train") if "train" in self.root else LOGGER.write("\nSubset: test")
         LOGGER.write(f"\n\t Total samples: {self.targets.size}")
-        LOGGER.write(f"\n\t\t Clean samples: {self.targets.size-np.sum(self.targets)}")
-        LOGGER.write(f"\n\t\t Jammer samples: {np.sum(self.targets)}")
+        for cls_name, cls_idx in self.class_to_idx.items():
+            LOGGER.write(f"\n\t\t {cls_name} samples: {np.sum(self.targets == cls_idx)}")
         LOGGER.write("\n\t Clean.") if not poison_params else LOGGER.write("\n\t Poisoned:")
 
-    def load_data(self):
-        self.data = []
-        for index in range(len(self.imgs)):
-            sample, _ = super().__getitem__(index)
-            self.data.append(sample)
-        self.data = np.array(self.data)#.transpose((0, 2, 3, 1))
 
     def poison(self):
         method = self.method
@@ -101,16 +91,16 @@ def poison_image(image, method, position, color):
     col_arr = np.asarray(color)
 
     if method == 'pixel':
-        poisoned[:, position[0], position[1]] = col_arr
+        poisoned[position[0], position[1], :] = col_arr
     elif method == 'pattern':
-        poisoned[:, position[0], position[1]] = col_arr
-        poisoned[:, position[0] + 1, position[1] + 1] = col_arr
-        poisoned[:, position[0] - 1, position[1] + 1] = col_arr
-        poisoned[:, position[0] + 1, position[1] - 1] = col_arr
-        poisoned[:, position[0] - 1, position[1] - 1] = col_arr
+        poisoned[position[0], position[1], :] = col_arr
+        poisoned[position[0] + 1, position[1] + 1, :] = col_arr
+        poisoned[position[0] - 1, position[1] + 1, :] = col_arr
+        poisoned[position[0] + 1, position[1] - 1, :] = col_arr
+        poisoned[position[0] - 1, position[1] - 1, :] = col_arr
     elif method == 'ell':
-        poisoned[:, position[0], position[1]] = col_arr
-        poisoned[:, position[0] + 1, position[1]] = col_arr
-        poisoned[:, position[0], position[1] + 1] = col_arr
+        poisoned[position[0], position[1], :] = col_arr
+        poisoned[position[0] + 1, position[1], :] = col_arr
+        poisoned[position[0], position[1] + 1, :] = col_arr
     return poisoned
 
