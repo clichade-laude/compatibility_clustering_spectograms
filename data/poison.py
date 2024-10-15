@@ -32,9 +32,6 @@ class PoisonDataset(datasets.CIFAR10):
             self.target = params['target']
 
             self.poison()
-    
-    def __getitem__(self, index: int):
-        return self.data[index], self.targets[index]
 
     def get_info(self, poison_params):
         from evaluation.run_defense import LOGGER

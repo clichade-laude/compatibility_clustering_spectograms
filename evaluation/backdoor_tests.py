@@ -11,7 +11,7 @@ cudnn.benchmark = True
 device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
 
 def get_datasets():
-    pairs = [(0, 2), (1, 3), (3, 5), (7, 4), (2, 5), (8, 6), (9, 2), (3, 7)]
+    pairs = [(0, 2)]
     poison_levels = [0.1, 0.2, 0.3, 0.4, 0.5, 0.]
     ds = []
     for poison in poison_levels:
