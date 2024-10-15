@@ -37,7 +37,7 @@ def compute_poison_stats(keep, clean):
 def run_defense(dataset,
         model_constructor, optimizer_constructor, 
         dataset_loader, epochs, batch_size, device, 
-        scheduler_constructor=None):
+        scheduler_constructor=None, filtering=True):
     
     test_folder, model_folder = create_folder(dataset)
     global LOGGER
@@ -54,46 +54,54 @@ def run_defense(dataset,
     source = poison_trainset.source
     target = poison_trainset.target
 
-    m_ctr = try_get_list(model_constructor, 0)
-    op_ctr = try_get_list(optimizer_constructor, 0)
-    s_ctr = try_get_list(scheduler_constructor, 0)
 
-    alpha = 8
-    data_perc = .96 / alpha
-    beta = 4
-    ground_truth_clean = np.array([i in poison_trainset.clean_samples for i in range(len(poison_trainset.targets))])
+    if filtering:
+        m_ctr = try_get_list(model_constructor, 0)
+        op_ctr = try_get_list(optimizer_constructor, 0)
+        s_ctr = try_get_list(scheduler_constructor, 0)
 
-    print("Starting poison filtering")
+        alpha = 8
+        data_perc = .96 / alpha
+        beta = 4
+        ground_truth_clean = np.array([i in poison_trainset.clean_samples for i in range(len(poison_trainset.targets))])
 
-    clean, net = \
-            filter_noise(m_ctr,
-                         batch_size,
-                         poison_trainset, len(poison_trainset.classes), poison_trainset.true_targets,
-                         op_ctr, scheduler_fn=s_ctr,
-                         data_perc=data_perc,
-                         boost=alpha,
-                         beta=beta,
-                         ground_truth_clean=ground_truth_clean,
-                         device=device)
-    
-    print("Finished poison filtering")
+        print("Starting poison filtering")
 
-    true_clean = np.zeros(len(poison_trainset))
-    true_clean[poison_trainset.clean_samples] = 1
-    false_pos, false_neg, true_pos, true_neg = compute_poison_stats(
-        clean, true_clean)
+        clean, net = \
+                filter_noise(m_ctr,
+                            batch_size,
+                            poison_trainset, len(poison_trainset.classes), poison_trainset.true_targets,
+                            op_ctr, scheduler_fn=s_ctr,
+                            data_perc=data_perc,
+                            boost=alpha,
+                            beta=beta,
+                            ground_truth_clean=ground_truth_clean,
+                            device=device)
+        
+        print("Finished poison filtering")
 
-    LOGGER.write("\nResults of identification of poisoned images:")
-    LOGGER.write(f"\n\t Poisoned removed images (detected as poison): {true_pos}")
-    LOGGER.write(f"\n\t Poisoned non-removed images (detected as clean): {false_neg}")
-    LOGGER.write(f"\n\t Clean non-removed images (detected as clean): {true_neg}")
-    LOGGER.write(f"\n\t Clean removed images (detected as poison): {false_pos}")
-    LOGGER.close()
+        true_clean = np.zeros(len(poison_trainset))
+        true_clean[poison_trainset.clean_samples] = 1
+        false_pos, false_neg, true_pos, true_neg = compute_poison_stats(
+            clean, true_clean)
+
+        LOGGER.write("\nResults of identification of poisoned images:")
+        LOGGER.write(f"\n\t Poisoned removed images (detected as poison): {true_pos}")
+        LOGGER.write(f"\n\t Poisoned non-removed images (detected as clean): {false_neg}")
+        LOGGER.write(f"\n\t Clean non-removed images (detected as clean): {true_neg}")
+        LOGGER.write(f"\n\t Clean removed images (detected as poison): {false_pos}")
+        LOGGER.close()
 
 
-    cleanset = Subset(poison_trainset, [i for i in range(len(poison_trainset)) if clean[i]])
+        cleanset = Subset(poison_trainset, [i for i in range(len(poison_trainset)) if clean[i]])
+
+    else: 
+        cleanset = poison_testset
     trainloader = torch.utils.data.DataLoader(cleanset, batch_size=batch_size, shuffle=True, num_workers=2)
 
+    m_ctr = try_get_list(model_constructor, 1)
+    op_ctr = try_get_list(optimizer_constructor, 1)
+    s_ctr = try_get_list(scheduler_constructor, 1)
 
     net = m_ctr().to(device)
     optimizer = op_ctr(net.parameters())

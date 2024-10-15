@@ -19,7 +19,7 @@ def get_datasets():
             ds.append(f"datasets/cifar-backdoor-{source}-to-{target}-{poison}.pickle")
     return ds
     
-def run(dataset, model):
+def run(dataset, model, filtering):
     if "32" in model:
         model_ctor = resnet32
     elif "18" in model:
@@ -49,9 +49,10 @@ def run(dataset, model):
         model_ctor, 
         [filter_op_ctr, train_op_ctr], cifar10_loader, 
         500, 512, 
-        device, [filter_s_ctr, train_s_ctr])
+        device, [filter_s_ctr, train_s_ctr], filtering)
 
 if __name__ == "__main__":
     for dataset in get_datasets():
-        run(dataset, "resnet32") 
+        run(dataset, "resnet32", True) 
+        run(dataset, "resnet32", False) 
 
