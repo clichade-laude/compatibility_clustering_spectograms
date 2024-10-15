@@ -44,8 +44,8 @@ class PoisonDataset(datasets.ImageFolder):
         from evaluation.run_defense import LOGGER
         LOGGER.write("\nSubset: train") if "train" in self.root else LOGGER.write("\nSubset: test")
         LOGGER.write(f"\n\t Total samples: {self.targets.size}")
-        LOGGER.write(f"\n\t\t Clean samples: {self.targets.size-np.sum(self.targets)}")
-        LOGGER.write(f"\n\t\t Jammer samples: {np.sum(self.targets)}")
+        for cls_name, cls_idx in self.class_to_idx.items():
+            LOGGER.write(f"\n\t\t {cls_name} samples: {np.sum(self.targets == cls_idx)}")
         LOGGER.write("\n\t Clean.") if not poison_params else LOGGER.write("\n\t Poisoned:")
 
     def load_data(self):
