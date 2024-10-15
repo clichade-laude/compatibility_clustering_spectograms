@@ -34,4 +34,3 @@ def cifar10_loader(path, batch_size=128, train=True, oracle=False, augment=True,
         num_workers=2, pin_memory=True)
 
     return dataset, dataloader
-

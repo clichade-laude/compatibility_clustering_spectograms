@@ -4,7 +4,7 @@ from torchvision import datasets
 
 class PoisonDataset(datasets.CIFAR10):
     def __init__(self, root, train=True, transform=None, target_transform=None, download=False, poison_params=None):
-        super(PoisonDataset, self).__init__(root, transform, target_transform, download=download)
+        super(PoisonDataset, self).__init__(root, train, transform, target_transform, download=download)
         self.train = train
         self.clean_samples = None 
         self.method = None
