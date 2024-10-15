@@ -2,7 +2,6 @@ import os
 import numpy as np
 import pickle
 
-
 def generate_backdoor_poison(seed=100):
     #seed = 100 # scenario 1
     #seed = 1000 # scenario 2
@@ -13,8 +12,8 @@ def generate_backdoor_poison(seed=100):
         seed = np.random.randint(50000000)
         np.random.seed(seed)
 
-    pairs = [(0, 1), (1, 0)]
-    poison_levels = [0.1, 0.2, 0.4, 0.4, 0.5, 0.]
+    pairs = [(0, 1), (1,0)]
+    poison_levels = [0.1, 0.2, 0.3, 0.4, 0.5, 0.]
     methods = ["pixel", "pattern", "ell"]
 
     for source, target in pairs:
@@ -27,7 +26,7 @@ def generate_backdoor_poison(seed=100):
             position = np.random.randint(0, 30, size=(2,))
         color = np.random.randint(255, size=(3,))
         for f in poison_levels:
-            ds_name = f"datasets/cifar-backdoor-{source}-to-{target}-{f}.pickle"
+            ds_name = f"datasets/spectrogram-backdoor-{source}-to-{target}-{f}.pickle"
             params = {"method": method,
                       "position": position,
                       "color": color,

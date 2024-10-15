@@ -21,7 +21,8 @@ train_transform = transforms.Compose(
          normalize])
 
 test_transform = transforms.Compose(
-    [transforms.ToTensor(),
+    [transforms.Resize((128,128)),
+     transforms.ToTensor(),
      normalize])
 
 def cifar10_loader(path, batch_size=128, train=True, oracle=False, augment=True, poison=True, dataset=None):

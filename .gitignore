@@ -2,3 +2,5 @@
 datasets/
 *.pyc
 .vscode
+.venv
+.ipynb_checkpoints

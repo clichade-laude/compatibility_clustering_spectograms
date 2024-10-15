@@ -1,8 +1,7 @@
 import torch
-import numpy as np
+from os import fsync
 
-def train(net, criterion, optimizer, epochs, trainloader, device, 
-        past_epochs=0, scheduler=None):
+def train(net, criterion, optimizer, epochs, trainloader, device, past_epochs=0, scheduler=None, log=None):
     net.train()
     for epoch in range(epochs):
         correct = 0
@@ -25,13 +24,16 @@ def train(net, criterion, optimizer, epochs, trainloader, device,
             # print statistics
             running_loss += loss.item()
             if i % 2000 == 1999:    # print every 2000 mini-batches
-                print('[%d, %5d] loss: %.3f' %
-                      (epoch + 1, i + 1, running_loss / 2000))
+                log.write('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / 2000))
                 running_loss = 0.0
 
-        print('Accuracy for epoch %d: %d %%' % (past_epochs + epoch + 1, 100 * correct / total))
+        log.write('Accuracy for epoch %d: %d %%' % (past_epochs + epoch + 1, 100 * correct / total))
         if scheduler is not None:
             scheduler.step()
+
+        ## Write to file every 10 epochs
+        if epoch % 10 == 9:
+            log.flush() ; fsync(log.fileno())
 
 def test(net, testloader, device, source, target=None):
     net.eval()
