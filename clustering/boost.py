@@ -8,7 +8,7 @@ import numpy as np
 from tqdm import tqdm
 
 import torch.nn as nn
-from defense.weak import WeakLearner
+from clustering.weak import WeakLearner
 
 from numba import njit, int32
 

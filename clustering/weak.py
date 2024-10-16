@@ -49,7 +49,7 @@ class WeakLearner(object):
         loss_fn = nn.CrossEntropyLoss(reduction="none")
 
         active_labels = self.dataset.targets[self.active]
-        active_clean = self.ground_truth_clean[self.active]
+        # active_clean = self.ground_truth_clean[self.active] ## NOTE: deleted as this values should not be provided
         indices_to_keep = np.copy(self.active)
 
         if len(self.active) == sum(self.active):
@@ -113,20 +113,23 @@ class WeakLearner(object):
             poison_class = []
             clean_class = []
             poison_class_perc = []
-            for i in range(self.num_classes):
-                mask = active_labels == i
-                _poison_class = sum(
-                    [i and not j \
-                     for i, j \
-                     in zip(train_keep[mask], 
-                            active_clean[mask])])
-                _clean_class = sum(
-                    [i and j \
-                     for i, j \
-                     in zip(train_keep[mask], 
-                            active_clean[mask])])
-                poison_class.append(_poison_class)
-                clean_class.append(_clean_class)
+            
+            ## NOTE: deleted as the variable active_clean should not exist
+            # for i in range(self.num_classes):
+            #     mask = active_labels == i
+            #     _poison_class = sum(
+            #         [i and not j \
+            #          for i, j \
+            #          in zip(train_keep[mask], 
+            #                 active_clean[mask])])
+            #     _clean_class = sum(
+            #         [i and j \
+            #          for i, j \
+            #          in zip(train_keep[mask], 
+            #                 active_clean[mask])])
+            #     poison_class.append(_poison_class)
+            #     clean_class.append(_clean_class)
+
             # print(f"poison_class: {poison_class}")
             # print(f"clean_class: {clean_class}")
         ## Fin del bucle
@@ -138,20 +141,22 @@ class WeakLearner(object):
         poison_class = []
         clean_class = []
         poison_class_perc = []
-        for i in range(self.num_classes):
-            mask = active_labels == i
-            _poison_class = sum(
-                [i and not j \
-                 for i, j \
-                 in zip(active_keep[mask], 
-                        active_clean[mask])])
-            _clean_class = sum(
-                [i and j \
-                 for i, j \
-                 in zip(active_keep[mask], 
-                        active_clean[mask])])
-            poison_class.append(_poison_class)
-            clean_class.append(_clean_class)
+
+        ## NOTE: deleted as the variable active_clean should not exist
+        # for i in range(self.num_classes):
+        #     mask = active_labels == i
+        #     _poison_class = sum(
+        #         [i and not j \
+        #          for i, j \
+        #          in zip(active_keep[mask], 
+        #                 active_clean[mask])])
+        #     _clean_class = sum(
+        #         [i and j \
+        #          for i, j \
+        #          in zip(active_keep[mask], 
+        #                 active_clean[mask])])
+        #     poison_class.append(_poison_class)
+        #     clean_class.append(_clean_class)
 
         # print(f"final poison_class: {poison_class}")
         # print(f"final clean_class: {clean_class}")
