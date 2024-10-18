@@ -4,3 +4,4 @@ datasets/
 .vscode
 .venv
 .ipynb_checkpoints
+__pycache__
