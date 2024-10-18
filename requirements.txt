@@ -1,5 +1,5 @@
 numba==0.60.0
-numpy==2.1.2
+numpy
 Pillow==10.4.0
 torch==2.4.1
 torchvision==0.19.1

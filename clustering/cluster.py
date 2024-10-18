@@ -1,7 +1,4 @@
-import sys
-sys.path.append('/home/laude/compatibility_clustering_spectograms/')
-
-import os
+import os, argparse
 import torch
 import numpy as np
 
@@ -18,23 +15,21 @@ def compute_poison_stats(keep, clean):
     true_neg = sum(np.logical_and(keep, clean))
     return false_pos, false_neg, true_pos, true_neg
 
-def cluster(dataset_name, batch_size, model_name):
+def cluster(dataset_name, model_name, batch_size):
     dataset_path = os.path.join("database/poisoned", dataset_name)
     ## Load dataset and dataloader
     dataset, _ = load_data(dataset_path, batch_size)
     ## Retrieve model and parameteres according to the selected one and the operation type
     model, optim, sched = get_model_info(model_name, operation="filter")
     ## Clustering parameters
-    # alpha, beta = 8, 4
-    alpha, beta = 1, 1
+    alpha, beta = 8, 4
     data_perc = .96 / alpha
 
     clean, net = filter_noise(
                     model, batch_size,
                     dataset, len(dataset.classes), None,
                     optim, scheduler_fn=sched,
-                    data_perc=data_perc, boost=alpha, beta=beta, device=device,
-                    bag=1)
+                    data_perc=data_perc, boost=alpha, beta=beta, device=device)
                     ## Los campos clean_labels (None) y ground_truth_clean (omitido) no se han añadido
                     ## ya que en teoría ni deberíamos poder conocerlos ni deberían hacer falta.
 
@@ -53,5 +48,11 @@ def cluster(dataset_name, batch_size, model_name):
     print(f"\n\t Clean removed images (detected as poison): {false_pos}")
     print()
    
-
-cluster('cifar', 256, 'resnet32')
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dataset", "-d", required=True, type=str, help='Name of the dataset to clean')
+    parser.add_argument("--model", "-m", type=str, help='CNN model to perform clustering', choices=["resnet32", "resnet18"], default="resnet32")
+    parser.add_argument("--batch", "-b", type=int, help='Batch size', default=128)
+    args = parser.parse_args()
+    print(args.dataset, args.model, args.batch)
+    cluster(args.dataset, args.model, args.batch)

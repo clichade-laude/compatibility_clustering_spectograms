@@ -1,4 +1,4 @@
-import os
+import os, argparse
 import torch
 from datetime import datetime
 from utils.models import get_model_info
@@ -9,9 +9,11 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 def set_name(dataset_path, clustering, model_name, epochs):
     dataset_path = dataset_path[:-1] if dataset_path[-1] == "/" else dataset_path
     dataset_info = dataset_path.split('/')
-    cluster = "-cluster" if clustering else "-noCluster" if dataset_info[-2] == "poisoned" else ""
+
+    info_idx = -2 if dataset_info[-1] == "train" else -1
+    cluster = "-cluster" if clustering else "-noCluster" if dataset_info[info_idx-1] == "poisoned" else ""
     timestamp = datetime.now().strftime('%m%d-%H%M')
-    return f"Model_{dataset_info[-1]}-{dataset_info[-2]}{cluster}_{model_name}_{epochs}_{timestamp}"
+    return f"Model_{dataset_info[info_idx]}-{dataset_info[info_idx-1]}{cluster}_{model_name}_{epochs}_{timestamp}"
 
 def execute_training(dataset_path, model_name, epochs, batch_size, clustering=False):
     _, dataloader = load_data(dataset_path, batch_size, clustering)
@@ -67,4 +69,13 @@ def train(net, criterion, optimizer, epochs, trainloader, device, past_epochs=0,
         if epoch % 10 == 9:
             log.flush() ; os.fsync(log.fileno())
 
-execute_training("database/poisoned/cifar", "resnet32", 1, 64, True)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dataset", "-d", required=True, type=str, help='Path to the dataset we want to train')
+    parser.add_argument("--model", "-m", type=str, help='CNN model to perform clustering', choices=["resnet32", "resnet18"], default="resnet32")
+    parser.add_argument("--epochs", "-e", required=True, type=int, help='Number of training epochs', default=200)
+    parser.add_argument("--batch", "-b", type=int, help='Batch size', default=128)
+    parser.add_argument("--cluster", action="store_true", help="Indicates whether to load cleaned samples")
+    args = parser.parse_args()
+    print(args.dataset, args.model, args.epochs, args.batch, args.cluster)
+    execute_training(args.dataset, args.model, args.epochs, args.batch, args.cluster)

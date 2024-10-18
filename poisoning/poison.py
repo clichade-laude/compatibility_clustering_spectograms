@@ -1,4 +1,4 @@
-import pickle, os, shutil
+import pickle, os, shutil, argparse
 import numpy as np
 
 from PIL import Image
@@ -75,4 +75,9 @@ def poison_image(image, method, position, color):
     return poisoned
 
 if __name__ == "__main__":
-    poison('cifar', 'datasets/cifar-backdoor-0-to-2-0.5.pickle')
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dataset", "-d", required=True, type=str, help='Name of the dataset to poison')
+    parser.add_argument("--poison", "-p", required=True, type=str, help='Path to the pickle file with the poison info')
+    args = parser.parse_args()
+    print(args.dataset, args.poison)
+    poison(args.dataset, args.poison)

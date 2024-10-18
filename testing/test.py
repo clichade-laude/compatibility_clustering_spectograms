@@ -1,4 +1,4 @@
-import os
+import os, argparse
 import torch
 
 from utils.models import get_model_info
@@ -61,4 +61,11 @@ def test(net, testloader, device, source, target=None):
     accuracy = correct / total
     return accuracy, target_misclassified
 
-execute_testing("cifar", "database/models/Model_cifar-poisoned-cluster_resnet32_1_1018-1018.pth", 64)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dataset", "-d", required=True, type=str, help='Name of the dataset to test')
+    parser.add_argument("--model", "-m", type=str, help='Path to the model we wanna test')
+    parser.add_argument("--batch", "-b", type=int, help='Batch size', default=128)
+    args = parser.parse_args()
+    print(args.dataset, args.model, args.batch)
+    execute_testing(args.dataset, args.model, args.batch)
