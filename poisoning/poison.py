@@ -14,12 +14,26 @@ def poison(dataset_name, poison_params):
     source_class = dataset_classes[params['source']]
     target_class = dataset_classes[params['target']]
 
-    source_images = np.array(sorted(os.listdir(os.path.join(dataset_path, source_class))))
+    poisoned_path = create_posioned_db(dataset_name, params['fraction_poisoned'])
+    logger = open(os.path.join(poisoned_path, "poison_info.txt"), "w")
+    logger.write(f"Dataset: {dataset_name}")
 
-    poisoned_path = create_poisoned_db(dataset_name, dataset_path, dataset_classes, source_class)
+    clean_imgs = move_clean_imgs(poisoned_path, dataset_path, dataset_classes, source_class, logger)
+    
+    source_images = np.array(sorted(os.listdir(os.path.join(dataset_path, source_class))))
     poison_count = int(params['fraction_poisoned'] * source_images.shape[0])
+    clean_count = source_images.shape[0] - poison_count
     poisoned_imgs = np.random.choice(source_images, size=poison_count, replace=False)
     np.savez(os.path.join(poisoned_path, 'poison_info.npz'), **{source_class: poisoned_imgs})
+
+    logger.write("\nPoisoned Class Info:")
+    logger.write(f"\n\tClass: {source_class}")
+    logger.write(f"\n\tTarget class: {target_class}")
+    logger.write(f"\n\tPoisoned percentage: {params['fraction_poisoned']}")
+    logger.write(f"\n\tPoisoned images: {poison_count}")
+    logger.write(f"\n\tClean images: {clean_count}")
+    logger.write(f"\nTotal Clean images: {clean_imgs + clean_count}")
+    logger.close()
 
     for img_name in source_images:
         if img_name in poisoned_imgs:
@@ -34,23 +48,32 @@ def poison(dataset_name, poison_params):
         else:
             shutil.copyfile(os.path.join(dataset_path, source_class, img_name), os.path.join(poisoned_path, source_class, img_name))
 
-
-def create_poisoned_db(dataset_name, dataset_path, dataset_classes, source_class):
+def create_posioned_db(dataset_name, fraction_poisoned):
+    poisoned_path = os.path.join('database/poisoned', f"{dataset_name}-{fraction_poisoned}")
     ## Create poisoned folder, deleting it if previously existed
-    poisoned_path = os.path.join('database/poisoned', dataset_name)
     if os.path.exists(poisoned_path):
         shutil.rmtree(poisoned_path)
     os.makedirs(poisoned_path)
-    
+    return poisoned_path
+
+def move_clean_imgs(poisoned_path, dataset_path, dataset_classes, source_class, logger):
+    logger.write("\nClean Classes Images:")
+    clean_imgs = 0
     ## Copy all the classes from original to the poisoned database
     for ds_css in dataset_classes:
         if ds_css == source_class:
             ## If source class, create only the folder
             os.makedirs(os.path.join(poisoned_path, source_class))
         else:
+            ## Copy images from original path to the poisoned one
             shutil.copytree(os.path.join(dataset_path, ds_css), os.path.join(poisoned_path, ds_css))
 
-    return poisoned_path
+            ## Logger information
+            css_imgs = len(os.listdir(os.path.join(poisoned_path, ds_css)))
+            logger.write(f"\n\t{ds_css}: {css_imgs}")
+            clean_imgs += css_imgs
+    return clean_imgs
+
 
 def poison_image(image, method, position, color):
     """

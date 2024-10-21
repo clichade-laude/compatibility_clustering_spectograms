@@ -41,12 +41,12 @@ def cluster(dataset_name, model_name, batch_size):
     true_clean[dataset.clean_samples] = 1
     false_pos, false_neg, true_pos, true_neg = compute_poison_stats(clean, true_clean)
 
-    print("\nResults of identification of poisoned images:")
-    print(f"\n\t Poisoned removed images (detected as poison): {true_pos}")
-    print(f"\n\t Poisoned non-removed images (detected as clean): {false_neg}")
-    print(f"\n\t Clean non-removed images (detected as clean): {true_neg}")
-    print(f"\n\t Clean removed images (detected as poison): {false_pos}")
-    print()
+    with open(os.path.join(dataset_path, "clustering.txt"), "w") as logger:
+        logger.write("\nResults of identification of poisoned images:")
+        logger.write(f"\n\t Poisoned removed images (detected as poison): {true_pos}")
+        logger.write(f"\n\t Poisoned non-removed images (detected as clean): {false_neg}")
+        logger.write(f"\n\t Clean non-removed images (detected as clean): {true_neg}")
+        logger.write(f"\n\t Clean removed images (detected as poison): {false_pos}")
    
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

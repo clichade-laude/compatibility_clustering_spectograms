@@ -2,7 +2,6 @@ import os
 import numpy as np
 
 from torch.utils.data import DataLoader
-from torch.utils.data.dataset import Subset
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
 
