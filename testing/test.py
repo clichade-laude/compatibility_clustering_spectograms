@@ -64,7 +64,7 @@ def test(net, testloader, device, source, target=None):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", "-d", required=True, type=str, help='Name of the dataset to test')
-    parser.add_argument("--model", "-m", type=str, help='Path to the model we wanna test')
+    parser.add_argument("--model", "-m", required=True, type=str, help='Path to the model we wanna test')
     parser.add_argument("--batch", "-b", type=int, help='Batch size', default=128)
     args = parser.parse_args()
     print(args.dataset, args.model, args.batch)

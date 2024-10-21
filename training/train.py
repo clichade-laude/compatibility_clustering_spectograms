@@ -72,7 +72,7 @@ def train(net, criterion, optimizer, epochs, trainloader, device, past_epochs=0,
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", "-d", required=True, type=str, help='Path to the dataset we want to train')
-    parser.add_argument("--model", "-m", type=str, help='CNN model to perform clustering', choices=["resnet32", "resnet18"], default="resnet32")
+    parser.add_argument("--model", "-m", type=str, help='CNN model to perform clustering', choices=["resnet32", "resnet18", "customnet"], default="resnet32")
     parser.add_argument("--epochs", "-e", required=True, type=int, help='Number of training epochs', default=200)
     parser.add_argument("--batch", "-b", type=int, help='Batch size', default=128)
     parser.add_argument("--cluster", action="store_true", help="Indicates whether to load cleaned samples")
