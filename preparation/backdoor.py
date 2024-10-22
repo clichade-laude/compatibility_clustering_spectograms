@@ -25,7 +25,7 @@ def generate_backdoor_poison(seed=100):
             position = np.random.randint(0, 30, size=(2,))
         color = np.random.randint(255, size=(3,))
         for f in poison_levels:
-            ds_name = f"datasets/cifar-backdoor-{source}-to-{target}-{f}.pickle"
+            ds_name = f"database/backdoor/cifar-backdoor-{source}-to-{target}-{f}.pickle"
             params = {"method": method,
                       "position": position,
                       "color": color,
