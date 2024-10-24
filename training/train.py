@@ -33,7 +33,8 @@ def execute_training(dataset_path, model_name, epochs, batch_size, clustering=Fa
 
         criterion = torch.nn.CrossEntropyLoss()
         train(net, criterion, opt, epochs, dataloader, device, 0, scheduler=sch, log=LOGGER)
-        torch.save(net.state_dict(), os.path.join("database/models", file_name + ".pth"))
+    torch.save(net.state_dict(), os.path.join("database/models", file_name + ".pth"))
+    return file_name
 
 def train(net, criterion, optimizer, epochs, trainloader, device, past_epochs=0, scheduler=None, log=None):
     net.train()

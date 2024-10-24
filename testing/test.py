@@ -10,14 +10,16 @@ def execute_testing(dataset, model_path, batch_size):
     dataset_path = os.path.join("database/original", dataset, "test")
     _, dataloader = load_data(dataset_path, batch_size)
 
-    model, _, _ = get_model_info(model_path.split('/')[-1].split('_')[2], operation="train")
+    model_name = model_path.split('/')[-1].split(".")[0]
+    model, _, _ = get_model_info(model_name.split('_')[2], operation="train")
     net = model().to(device)
     net.load_state_dict(torch.load(model_path))
 
     accuracy, misclassified = test(net, dataloader, device, 0)
     ms = sum(misclassified) / len(misclassified)
-    print(f"Accuracy: {accuracy}")
-    print(f"Missclassified: {ms}")
+    with open(os.path.join('database/models', model_name + "_test.txt"), "w") as logger:
+        logger.write(f"Accuracy: {accuracy}")
+        logger.write(f"\nMissclassified: {ms}")
 
 
 def test(net, testloader, device, source, target=None):

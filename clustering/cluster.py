@@ -4,7 +4,7 @@ import numpy as np
 
 from utils.models import get_model_info
 from utils.dataset import load_data
-from boost import filter_noise
+from clustering.boost import filter_noise
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

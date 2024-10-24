@@ -41,12 +41,13 @@ def poison(dataset_name, poison_params):
             image = Image.open(os.path.join(dataset_path, source_class, img_name))
             image = np.asarray(image)
             ## Poison it and return to image
-            poisoned_image = poison_image(image, params['method'], params['position'], params['color'])
+            poisoned_image = poison_image(image, params['position'], params['color'], params['size'])
             poisoned_image = Image.fromarray(poisoned_image)
             ## Save it on target class
             poisoned_image.save(os.path.join(poisoned_path, target_class, img_name))
         else:
             shutil.copyfile(os.path.join(dataset_path, source_class, img_name), os.path.join(poisoned_path, source_class, img_name))
+    return poisoned_path
 
 def create_posioned_db(dataset_name, fraction_poisoned):
     poisoned_path = os.path.join('database/poisoned', f"{dataset_name}-{fraction_poisoned}")
@@ -75,7 +76,7 @@ def move_clean_imgs(poisoned_path, dataset_path, dataset_classes, source_class, 
     return clean_imgs
 
 
-def poison_image(image, method, position, color):
+def poison_image(image, position, color, size):
     """
     adapted from https://github.com/MadryLab/backdoor_data_poisoning/blob/master/dataset_input.py
     method = "pixel" or "pattern" or "ell"
@@ -83,18 +84,9 @@ def poison_image(image, method, position, color):
     poisoned = np.copy(image)
     col_arr = np.asarray(color)
 
-    if method == 'pixel':
-        poisoned[position[0], position[1], :] = col_arr
-    elif method == 'pattern':
-        poisoned[position[0], position[1], :] = col_arr
-        poisoned[position[0] + 1, position[1] + 1, :] = col_arr
-        poisoned[position[0] - 1, position[1] + 1, :] = col_arr
-        poisoned[position[0] + 1, position[1] - 1, :] = col_arr
-        poisoned[position[0] - 1, position[1] - 1, :] = col_arr
-    elif method == 'ell':
-        poisoned[position[0], position[1], :] = col_arr
-        poisoned[position[0] + 1, position[1], :] = col_arr
-        poisoned[position[0], position[1] + 1, :] = col_arr
+    ## Poison a square of sizeXsize given the initial position as x,y coordintes
+    poisoned[position[0]:position[0] + size, position[1]:position[1] + size, :] = col_arr
+
     return poisoned
 
 if __name__ == "__main__":

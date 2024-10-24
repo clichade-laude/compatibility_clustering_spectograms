@@ -1,7 +1,7 @@
 import numpy as np
 import pickle
 
-def generate_backdoor_poison(seed=100):
+def generate_backdoor_poison(poison_size=1, img_size=32, seed=100):
     #seed = 100 # scenario 1
     #seed = 1000 # scenario 2
     #seed = 10000 # scenario 3
@@ -13,20 +13,13 @@ def generate_backdoor_poison(seed=100):
 
     pairs = [(0, 2)]
     poison_levels = [0.1, 0.2, 0.3, 0.4, 0.5, 0.]
-    methods = ["pixel", "pattern", "ell"]
 
     for source, target in pairs:
-        method = methods[np.random.randint(3)]
-        if method == "pixel":
-            position = np.random.randint(31, size=(2,))
-        elif method == "pattern":
-            position = np.random.randint(1, 30, size=(2,))
-        else:
-            position = np.random.randint(0, 30, size=(2,))
+        position = np.random.randint(img_size-poison_size, size=(2,))
         color = np.random.randint(255, size=(3,))
         for f in poison_levels:
-            ds_name = f"database/backdoor/cifar-backdoor-{source}-to-{target}-{f}.pickle"
-            params = {"method": method,
+            ds_name = f"database/backdoor/backdoor_{source}-{target}_{f}_{poison_size}-{img_size}.pickle"
+            params = {"size": poison_size,
                       "position": position,
                       "color": color,
                       "fraction_poisoned": f,

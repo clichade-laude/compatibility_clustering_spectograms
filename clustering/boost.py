@@ -5,7 +5,7 @@ import numpy as np
 import torch.nn as nn
 from numba import njit, int32
 
-from weak import WeakLearner
+from clustering.weak import WeakLearner
 
 # https://stackoverflow.com/questions/60894157
 @njit
