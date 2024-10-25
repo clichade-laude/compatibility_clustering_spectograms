@@ -9,7 +9,7 @@ def main(dataset, poison_params, model_name, epochs, batch_size, doPoison: bool,
     if doPoison:
         ds_path = poisoning.poison.poison(dataset, poison_params)
         os.rename(os.path.join(ds_path, "poison_info.txt"), os.path.join(test_path, "poison_info.txt"))
-        poisoned_ds_name = ds_path.replace('dataset/poisoned/', '')
+        poisoned_ds_name = ds_path.replace('database/poisoned/', '')
         if doCluster:
             clustering.cluster.cluster(poisoned_ds_name, model_name, batch_size)
             os.rename(os.path.join(ds_path, "clustering.txt"), os.path.join(test_path, "clustering.txt"))
@@ -20,7 +20,7 @@ def main(dataset, poison_params, model_name, epochs, batch_size, doPoison: bool,
     os.rename(os.path.join('database/models', output_name + '.txt'), output_path + '.txt')
     os.rename(os.path.join('database/models', output_name + '.pth'), output_path + '.pth')
     testing.test.execute_testing(dataset, output_path + '.pth', batch_size)
-    os.rename(os.path.join('database/models', output_name + '_model.txt'), output_path + '_model.txt')
+    os.rename(os.path.join('database/models', output_name + '_test.txt'), output_path + '_test.txt')
 
 
 if __name__ == "__main__":
