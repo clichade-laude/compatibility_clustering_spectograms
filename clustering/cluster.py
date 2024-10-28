@@ -4,6 +4,7 @@ import numpy as np
 
 from utils.models import get_model_info
 from utils.dataset import load_data
+from utils.mqtt import connect_node, publish_mqtt
 from clustering.boost import filter_noise
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -47,12 +48,20 @@ def cluster(dataset_name, model_name, batch_size):
         logger.write(f"\n\t Poisoned non-removed images (detected as clean): {false_neg}")
         logger.write(f"\n\t Clean non-removed images (detected as clean): {true_neg}")
         logger.write(f"\n\t Clean removed images (detected as poison): {false_pos}")
-   
+
+def on_message(client, userdata, msg):
+    import json
+    params = json.loads(msg.payload)
+    cluster(params["dataset"], params["model"], params["batch"])
+
+    publish_mqtt(client, "control", node=userdata)
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--dataset", "-d", required=True, type=str, help='Name of the dataset to clean')
-    parser.add_argument("--model", "-m", type=str, help='CNN model to perform clustering', choices=["resnet32", "resnet18"], default="resnet32")
-    parser.add_argument("--batch", "-b", type=int, help='Batch size', default=128)
-    args = parser.parse_args()
-    print(args.dataset, args.model, args.batch)
-    cluster(args.dataset, args.model, args.batch)
+    connect_node("cluster", on_message)
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("--dataset", "-d", required=True, type=str, help='Name of the dataset to clean')
+    # parser.add_argument("--model", "-m", type=str, help='CNN model to perform clustering', choices=["resnet32", "resnet18"], default="resnet32")
+    # parser.add_argument("--batch", "-b", type=int, help='Batch size', default=128)
+    # args = parser.parse_args()
+    # print(args.dataset, args.model, args.batch)
+    # cluster(args.dataset, args.model, args.batch)

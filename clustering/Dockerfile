@@ -2,11 +2,11 @@ FROM python:3.10.15
 
 WORKDIR /home/app
 
-RUN pip install numpy numba torch torchvision
+RUN pip install numpy numba torch torchvision paho-mqtt
 
-COPY clustering .
+COPY clustering clustering
 COPY utils utils
 COPY model model
 
-ENTRYPOINT ["python3", "cluster.py"]
+CMD ["python3", "-m", "clustering.cluster"]
 

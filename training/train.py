@@ -3,6 +3,7 @@ import torch
 from datetime import datetime
 from utils.models import get_model_info
 from utils.dataset import load_data
+from utils.mqtt import connect_node, publish_mqtt
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -79,13 +80,22 @@ def train(net, criterion, optimizer, epochs, trainloader, device, past_epochs=0,
         if epoch % 10 == 9:
             log.flush() ; os.fsync(log.fileno())
 
+def on_message(client, userdata, msg):
+    print("Node: training", flush=True)
+    import json
+    params = json.loads(msg.payload)
+    execute_training(params["dataset"], params["model"], params["epochs"], params["batch"], params["cluster"])
+
+    publish_mqtt(client, "control", node=userdata)
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--dataset", "-d", required=True, type=str, help='Path to the dataset we want to train')
-    parser.add_argument("--model", "-m", type=str, help='CNN model to perform clustering', choices=["resnet32", "resnet18", "customnet"], default="resnet32")
-    parser.add_argument("--epochs", "-e", required=True, type=int, help='Number of training epochs', default=200)
-    parser.add_argument("--batch", "-b", type=int, help='Batch size', default=128)
-    parser.add_argument("--cluster", action="store_true", help="Indicates whether to load cleaned samples")
-    args = parser.parse_args()
-    print(args.dataset, args.model, args.epochs, args.batch, args.cluster)
-    execute_training(args.dataset, args.model, args.epochs, args.batch, args.cluster)
+    connect_node("train", on_message)
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("--dataset", "-d", required=True, type=str, help='Path to the dataset we want to train')
+    # parser.add_argument("--model", "-m", type=str, help='CNN model to perform clustering', choices=["resnet32", "resnet18", "customnet"], default="resnet32")
+    # parser.add_argument("--epochs", "-e", required=True, type=int, help='Number of training epochs', default=200)
+    # parser.add_argument("--batch", "-b", type=int, help='Batch size', default=128)
+    # parser.add_argument("--cluster", action="store_true", help="Indicates whether to load cleaned samples")
+    # args = parser.parse_args()
+    # print(args.dataset, args.model, args.epochs, args.batch, args.cluster)
+    # execute_training(args.dataset, args.model, args.epochs, args.batch, args.cluster)

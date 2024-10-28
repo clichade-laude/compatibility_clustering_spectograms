@@ -1,6 +1,7 @@
 import pickle, os, shutil, argparse
 import numpy as np
 
+from utils.mqtt import connect_node, publish_mqtt
 from PIL import Image
 
 np.random.seed(42)
@@ -47,7 +48,7 @@ def poison(dataset_name, poison_params):
             poisoned_image.save(os.path.join(poisoned_path, target_class, img_name))
         else:
             shutil.copyfile(os.path.join(dataset_path, source_class, img_name), os.path.join(poisoned_path, source_class, img_name))
-    return poisoned_path
+    return poisoned_path.split('/')[-1]
 
 def create_posioned_db(dataset_name, fraction_poisoned):
     poisoned_path = os.path.join('database/poisoned', f"{dataset_name}-{fraction_poisoned}")
@@ -89,10 +90,19 @@ def poison_image(image, position, color, size):
 
     return poisoned
 
+def on_message(client, userdata, msg):
+    print("Node: poison | Executing", flush=True)
+    import json
+    params = json.loads(msg.payload)
+    pois_dataset = poison(params['dataset'], params['poison'])
+
+    publish_mqtt(client, "control", node=userdata, dataset=pois_dataset)
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--dataset", "-d", required=True, type=str, help='Name of the dataset to poison')
-    parser.add_argument("--poison", "-p", required=True, type=str, help='Path to the pickle file with the poison info')
-    args = parser.parse_args()
-    print(args.dataset, args.poison)
-    poison(args.dataset, args.poison)
+    connect_node("poison", on_message)
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("--dataset", "-d", required=True, type=str, help='Name of the dataset to poison')
+    # parser.add_argument("--poison", "-p", required=True, type=str, help='Path to the pickle file with the poison info')
+    # args = parser.parse_args()
+    # print(args.dataset, args.poison)
+    # poison(args.dataset, args.poison)
