@@ -6,7 +6,6 @@ RUN pip install numpy torch torchvision
 
 COPY testing/test.py .
 COPY utils utils
-COPY model model
 
 ENTRYPOINT ["python3", "test.py"]
 

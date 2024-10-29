@@ -1,8 +1,8 @@
 import torch
 
-from model.preact_resnet import PreActResNet18
-from model.resnet_paper import resnet32
-from model.modelnet import Net as CustomNet
+from utils.model.preact_resnet import PreActResNet18
+from utils.model.resnet_paper import resnet32
+from utils.model.modelnet import Net as CustomNet
 
 model_info = {
         "resnet32": {

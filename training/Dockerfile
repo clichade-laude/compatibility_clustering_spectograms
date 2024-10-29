@@ -6,7 +6,6 @@ RUN pip install numpy torch torchvision paho-mqtt
 
 COPY training/train.py .
 COPY utils utils
-COPY model model
 
 CMD ["python3", "train.py"]
 
