@@ -50,6 +50,7 @@ def cluster(dataset_name, model_name, batch_size):
         logger.write(f"\n\t Clean removed images (detected as poison): {false_pos}")
 
 def on_message(client, userdata, msg):
+    print("Node: clustering | Executing", flush=True)
     import json
     params = json.loads(msg.payload)
     cluster(params["dataset"], params["model"], params["batch"])

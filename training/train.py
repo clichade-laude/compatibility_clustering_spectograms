@@ -81,7 +81,7 @@ def train(net, criterion, optimizer, epochs, trainloader, device, past_epochs=0,
             log.flush() ; os.fsync(log.fileno())
 
 def on_message(client, userdata, msg):
-    print("Node: training", flush=True)
+    print("Node: training | Executing", flush=True)
     import json
     params = json.loads(msg.payload)
     execute_training(params["dataset"], params["model"], params["epochs"], params["batch"], params["cluster"])
