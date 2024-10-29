@@ -30,7 +30,9 @@ def on_message(client, userdata, msg):
         args.dataset = params.pop("dataset")
 
     ## Actions execution
-    if node == "start" and args.poison:
+    if node == "train":
+        print("Node: controller | Workflow finished", flush=True)
+    elif node == "start" and args.poison:
         exec_poison(client)
     elif node == "poison" and args.cluster:
         exec_cluster(client)
