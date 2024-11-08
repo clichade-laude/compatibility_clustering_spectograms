@@ -8,13 +8,10 @@ def main(dataset, poison_params, model_name, epochs, batch_size, doPoison: bool,
     os.makedirs(test_path)
     if doPoison:
         ds_path = poisoning.poison.poison(dataset, poison_params)
-        os.rename(os.path.join(ds_path, "poison_info.txt"), os.path.join(test_path, "poison_info.txt"))
-        # poisoned_ds_name = ds_path.replace('database/poisoned/', '')
+        os.rename(os.path.join('database/poisoned/', ds_path, "poison_info.txt"), os.path.join(test_path, "poison_info.txt"))
         if doCluster:
             clustering.cluster.cluster(ds_path, model_name, batch_size)
-            os.rename(os.path.join(ds_path, "clustering.txt"), os.path.join(test_path, "clustering.txt"))
-    # else: 
-        # ds_path = os.path.join('database/original', dataset, 'train')
+            os.rename(os.path.join('database/poisoned/', ds_path, "clustering.txt"), os.path.join(test_path, "clustering.txt"))
     output_name = training.train.execute_training(ds_path, model_name, epochs, batch_size, doCluster)
     output_path = os.path.join(test_path, output_name)
     os.rename(os.path.join('database/models', output_name + '.txt'), output_path + '.txt')
@@ -22,6 +19,7 @@ def main(dataset, poison_params, model_name, epochs, batch_size, doPoison: bool,
     testing.test.execute_testing(dataset, output_path + '.pth', batch_size)
     os.rename(os.path.join('database/models', output_name + '_test.txt'), output_path + '_test.txt')
 
+# main("cifar", "database/backdoor/backdoor_0-2_0.2_1-32.pickle", "resnet32", 200, 512, True, False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

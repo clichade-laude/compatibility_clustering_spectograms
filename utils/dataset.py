@@ -7,7 +7,12 @@ from torchvision.datasets import ImageFolder
 
 class PoisonDataset(ImageFolder):
     def __init__(self, root, clustering):
-        transform = transforms.Compose([transforms.Resize((128,128)), transforms.ToTensor()])
+        img_size = 32 if "cifar" in root else 128
+        normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std= [0.229, 0.224, 0.225])
+        transform_list = [transforms.Resize((img_size, img_size)), transforms.ToTensor()]
+        if "cifar" in root:
+            transform_list.append(normalize)
+        transform = transforms.Compose(transform_list)
         super(PoisonDataset, self).__init__(root, transform)
 
         self.targets = np.array(self.targets)
