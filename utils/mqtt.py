@@ -11,7 +11,8 @@ def publish_mqtt(client: mqtt.Client, topic, **kwargs):
 def on_connect(client: mqtt.Client, userdata, flags, rc, properties):
     if rc == 0:
         print("Connected successfully", flush=True)
-        client.subscribe(f"/{userdata['topic']}")
+        for topic in userdata['topic']:
+            client.subscribe(f"/{topic}")
     else:
         print("Connection failed with code", rc)
 
@@ -19,7 +20,9 @@ def on_message(client, userdata, msg):
     process_message = userdata['process_message']
     Thread(target=process_message, args=(client, userdata["topic"], msg)).start()
 
-def connect_mqtt(topic: str, process_message = None):
+def connect_mqtt(topic, process_message = None):
+    if isinstance(topic, str):
+        topic = [topic]
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, userdata={'topic': topic, 'process_message': process_message})
     client.on_connect = on_connect
     client.on_message = on_message

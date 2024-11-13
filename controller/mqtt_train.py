@@ -29,6 +29,12 @@ def on_message(client, userdata, msg):
     elif node == "poison":
         args.dataset = params.pop("dataset")
 
+    ## Start and stop monitoring
+    if node == "start":
+        publish_mqtt(client, "start_monitor")
+    elif node == "train":
+        publish_mqtt(client, "stop_monitor")
+
     ## Actions execution
     if node == "train":
         print("Node: controller | Workflow finished", flush=True)

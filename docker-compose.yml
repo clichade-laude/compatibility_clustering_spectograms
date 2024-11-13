@@ -12,7 +12,7 @@ services:
     environment:
       - MQTT_BROKER=mqtt
     volumes:
-      - /home/laude/compatibility_clustering_spectograms/database:/home/app/database
+      - ./database:/home/app/database
     networks:
       - my_network
 
@@ -23,7 +23,7 @@ services:
     environment:
       - MQTT_BROKER=mqtt
     volumes:
-      - /home/laude/compatibility_clustering_spectograms/database:/home/app/database
+      - ./database:/home/app/database
     networks:
       - my_network
 
@@ -34,7 +34,18 @@ services:
     environment:
       - MQTT_BROKER=mqtt
     volumes:
-      - /home/laude/compatibility_clustering_spectograms/database:/home/app/database
+      - ./database:/home/app/database
+    networks:
+      - my_network
+
+  monitoring:
+    image: monitoring
+    depends_on:
+      - mosquitto
+    environment:
+      - MQTT_BROKER=mqtt
+    volumes:
+      - ./database:/home/app/database
     networks:
       - my_network
 
