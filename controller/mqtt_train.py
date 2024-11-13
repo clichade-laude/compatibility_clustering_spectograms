@@ -1,5 +1,5 @@
 from utils.mqtt import connect_node, publish_mqtt
-import json
+import json, time
 
 class Arguments(object):
     def __init__(self, initial_data):
@@ -32,6 +32,7 @@ def on_message(client, userdata, msg):
     ## Start and stop monitoring
     if node == "start":
         publish_mqtt(client, "start_monitor")
+        time.sleep(10) ## Wait for monitor to start
     elif node == "train":
         publish_mqtt(client, "stop_monitor")
 

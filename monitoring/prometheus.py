@@ -13,7 +13,7 @@ processes = {"python3poison.py": "poison",
 active = 0
 
 def monitor():
-    prometh = PrometheusConnect()
+    prometh = PrometheusConnect("http://192.168.10.194:9090")
     conn = sqlite3.connect(metrics_path + "metrics.db")
     cursor = conn.cursor()
 
@@ -25,29 +25,34 @@ def monitor():
         total_power, process_power = 0, {}
         for data in prometh.custom_query(command + "{}"):
             metric = data['metric']
+            if metric.get('__name__') != command:
+                continue
+            ## Obtain timestamp and metric value
+            timestamp = int(data['value'][0])
             value = float(data['value'][1])/1e6
-            if metric.get('__name__') == command:
-                total_power += value
-            elif metric.get('cmdline') in processes.keys():
-                timestamp = int(data['value'][0])
+            ## Add value to total power
+            total_power += value
+            ## Search for container processes
+            if metric.get('cmdline') in processes.keys():
                 cmdline = processes[metric['cmdline']]
                 if cmdline not in process_power:
                     process_power[cmdline] = 0
                 process_power[cmdline] += value
         query_metrics = {"total": total_power, **process_power}
-        cursor.execute("INSERT INTO metrics (timestamp, value) VALUES (?, ?)", timestamp, json.dumps(query_metrics))
+        cursor.execute("INSERT INTO metrics (timestamp, value) VALUES (?, ?)", (timestamp, json.dumps(query_metrics)))
         conn.commit()
-        df = df.append(query_metrics, ignore_index=True)
+        df = pd.concat([df, pd.DataFrame([query_metrics])], ignore_index=True)
     df.to_csv(metrics_path + 'metrics.csv', index=False)
     conn.close()
 
 def on_message(client, userdata, msg):
-    if msg.topic == "start_monitor":
+    global active
+    if msg.topic == "/start_monitor":
         print("Node: monitoring | Executing", flush=True)
         active += 1
         if active == 1:
             monitor()
-    elif msg.topic == "stop_monitor":
+    elif msg.topic == "/stop_monitor":
         active -= 1
         print("Node: monitoring | Finishing", flush=True)
 
