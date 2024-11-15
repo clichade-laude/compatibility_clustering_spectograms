@@ -3,6 +3,9 @@ version: '3'
 networks:
   my_network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.33.0/24
 
 services:
   poisoning: 
@@ -68,3 +71,44 @@ services:
     image: toke/mosquitto
     networks:
       - my_network
+
+  scaphandre:
+    image: hubblo/scaphandre
+    privileged: true
+    ports: 
+      - "8080:8080"
+    volumes:
+      - type: bind
+        source: /proc
+        target: /proc
+      - type: bind
+        source: /sys/class/powercap
+        target: /sys/class/powercap
+    command: ["prometheus"]                         
+    networks:
+      - my_network
+
+  prometheus:
+    build:
+      context: ./prometheus
+    ports: 
+      - "9090:9090"
+    volumes: 
+      - promdata-scaphandre:/prometheus 
+    networks:
+      - my_network
+
+  grafana:
+    image: grafana/grafana:10.4.12
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: "secret"
+      # GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: "/var/lib/grafana/dashboards/sample/sample-dashboard.json"
+    depends_on:
+      - prometheus
+    ports: 
+      - "3000:3000"
+    networks:
+      - my_network
+
+volumes:
+  promdata-scaphandre:
