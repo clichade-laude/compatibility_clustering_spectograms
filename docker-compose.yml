@@ -1,5 +1,3 @@
-version: '3'
-
 networks:
   my_network:
     driver: bridge
@@ -10,6 +8,10 @@ networks:
 services:
   poisoning: 
     image: poisoning
+    deploy:
+      resources:
+        limits:
+          cpus: 2.0
     depends_on:
       - mosquitto
     environment:
@@ -21,6 +23,11 @@ services:
 
   clustering:
     image: clustering
+    deploy:
+      resources:
+        limits:
+          cpus: 16.0
+    shm_size: '512m'
     depends_on:
       - mosquitto
     environment:
@@ -32,6 +39,11 @@ services:
 
   training:
     image: training
+    deploy:
+      resources:
+        limits:
+          cpus: 16.0
+    shm_size: '512m'
     depends_on:
       - mosquitto
     environment:
@@ -43,6 +55,10 @@ services:
 
   monitoring:
     image: monitoring
+    deploy:
+      resources:
+        limits:
+          cpus: 0.50
     depends_on:
       - mosquitto
     environment:
@@ -54,6 +70,10 @@ services:
 
   controller:
     image: controller
+    deploy:
+      resources:
+        limits:
+          cpus: 0.50
     depends_on:
       - mosquitto
     environment:
@@ -63,6 +83,10 @@ services:
 
   mosquitto:
     container_name: mqtt
+    deploy:
+      resources:
+        limits:
+          cpus: 1.0
     expose:
       - "1883"
     ports:
@@ -74,6 +98,10 @@ services:
 
   scaphandre:
     image: hubblo/scaphandre
+    deploy:
+      resources:
+        limits:
+          cpus: 1.0
     privileged: true
     ports: 
       - "8080:8080"
@@ -91,6 +119,10 @@ services:
   prometheus:
     build:
       context: ./prometheus
+    deploy:
+      resources:
+        limits:
+          cpus: 1.0
     ports: 
       - "9090:9090"
     volumes: 
@@ -100,6 +132,10 @@ services:
 
   grafana:
     image: grafana/grafana:10.4.12
+    deploy:
+      resources:
+        limits:
+          cpus: 1.0
     environment:
       GF_SECURITY_ADMIN_PASSWORD: "secret"
       # GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: "/var/lib/grafana/dashboards/sample/sample-dashboard.json"
