@@ -42,7 +42,7 @@ def monitor():
         cursor.execute("INSERT INTO metrics (timestamp, value) VALUES (?, ?)", (timestamp, json.dumps(query_metrics)))
         conn.commit()
         df = pd.concat([df, pd.DataFrame([query_metrics])], ignore_index=True)
-    df.to_csv(metrics_path + 'metrics.csv', index=False)
+    df.to_csv(metrics_path + 'metrics.csv', index=False, mode="a")
     conn.close()
 
 def on_message(client, userdata, msg):
