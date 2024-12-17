@@ -16,8 +16,10 @@ def compute_poison_stats(keep, clean):
     true_neg = sum(np.logical_and(keep, clean))
     return false_pos, false_neg, true_pos, true_neg
 
-def cluster(dataset_name, model_name, batch_size):
+def cluster(dataset_name, model_name, batch_size, test_folder):
     dataset_path = os.path.join("database/poisoned", dataset_name)
+    test_path = os.path.join("database", "results", test_folder)
+
     ## Load dataset and dataloader
     dataset, _ = load_data(dataset_path, batch_size)
     ## Retrieve model and parameteres according to the selected one and the operation type
@@ -42,7 +44,7 @@ def cluster(dataset_name, model_name, batch_size):
     true_clean[dataset.clean_samples] = 1
     false_pos, false_neg, true_pos, true_neg = compute_poison_stats(clean, true_clean)
 
-    with open(os.path.join(dataset_path, "clustering.txt"), "w") as logger:
+    with open(os.path.join(test_path, "clustering.txt"), "w") as logger:
         logger.write("\nResults of identification of poisoned images:")
         logger.write(f"\n\t Poisoned removed images (detected as poison): {true_pos}")
         logger.write(f"\n\t Poisoned non-removed images (detected as clean): {false_neg}")
@@ -53,7 +55,7 @@ def on_message(client, userdata, msg):
     print("Node: clustering | Executing", flush=True)
     import json
     params = json.loads(msg.payload)
-    cluster(params["dataset"], params["model"], params["batch"])
+    cluster(params["dataset"], params["model"], params["batch"], params["folder"])
 
     publish_mqtt(client, "control", node=userdata)
 

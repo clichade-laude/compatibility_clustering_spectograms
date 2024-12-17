@@ -9,13 +9,13 @@ class Arguments(object):
 
 
 def exec_poison(client):
-    publish_mqtt(client, "poison", dataset=args.dataset, poison=args.poison_info)
+    publish_mqtt(client, "poison", dataset=args.dataset, poison=args.poison_info, folder=args.folder)
 
 def exec_cluster(client):
-    publish_mqtt(client, "cluster", dataset=args.dataset, model=args.model, batch=args.batch)
+    publish_mqtt(client, "cluster", dataset=args.dataset, model=args.model, batch=args.batch, folder=args.folder)
 
 def exec_train(client):
-    publish_mqtt(client, "train", dataset=args.dataset, model=args.model, epochs=args.epochs, batch=args.batch, cluster=args.cluster)
+    publish_mqtt(client, "train", dataset=args.dataset, model=args.model, epochs=args.epochs, batch=args.batch, cluster=args.cluster, folder=args.folder)
 
 def on_message(client, userdata, msg):
     params = json.loads(msg.payload)
@@ -26,6 +26,7 @@ def on_message(client, userdata, msg):
     if node == "start":
         global args
         args = Arguments(params)
+        print(f"Saving results on {args.folder}", flush=True)
     elif node == "poison":
         args.dataset = params.pop("dataset")
 

@@ -1,8 +1,20 @@
-import argparse
+import argparse, os
+from datetime import datetime
 
 from utils.mqtt import connect_mqtt, publish_mqtt
 
+def create_folder(args):
+    ## Format variables for the name
+    poison = "NoPoison" if not args.poison_info else args.poison_info.split("/")[-1].replace(".pickle","")
+    cluster = "Cluster" if args.cluster and args.poison_info else "NoCluster"
+    date = datetime.now().strftime("%y%m%d-%H%M")
+    ## Create name and folder
+    folder_name = f"{date}__{args.dataset}_{args.model}_E{args.epochs}_B{args.batch}__{poison}__{cluster}"
+    os.makedirs(f"database/results/{folder_name}")
+    return folder_name
+
 def main(args):
+    args.folder = create_folder(args)
     args = args.__dict__
     args["node"] = "start"
     client = connect_mqtt("start", None)

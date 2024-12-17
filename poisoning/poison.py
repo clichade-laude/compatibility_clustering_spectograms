@@ -6,7 +6,7 @@ from PIL import Image
 
 np.random.seed(42)
 
-def poison(dataset_name, poison_params):
+def poison(dataset_name, poison_params, test_folder):
     dataset_path = os.path.join('database/original', dataset_name, 'train')
     with open(f'{poison_params}', 'rb') as f:
         params = pickle.load(f)
@@ -16,7 +16,9 @@ def poison(dataset_name, poison_params):
     target_class = dataset_classes[params['target']]
 
     poisoned_path = create_posioned_db(dataset_name, params['fraction_poisoned'])
-    logger = open(os.path.join(poisoned_path, "poison_info.txt"), "w")
+    test_path = os.path.join("database", "results", test_folder)
+
+    logger = open(os.path.join(test_path, "poison_info.txt"), "w")
     logger.write(f"Dataset: {dataset_name}")
 
     clean_imgs = move_clean_imgs(poisoned_path, dataset_path, dataset_classes, source_class, logger)
@@ -26,6 +28,7 @@ def poison(dataset_name, poison_params):
     clean_count = source_images.shape[0] - poison_count
     poisoned_imgs = np.random.choice(source_images, size=poison_count, replace=False)
     np.savez(os.path.join(poisoned_path, 'poison_info.npz'), **{source_class: poisoned_imgs})
+    np.savez(os.path.join(test_path, 'poison_info.npz'), **{source_class: poisoned_imgs})
 
     logger.write("\nPoisoned Class Info:")
     logger.write(f"\n\tClass: {source_class}")
@@ -94,7 +97,7 @@ def on_message(client, userdata, msg):
     print("Node: poison | Executing", flush=True)
     import json
     params = json.loads(msg.payload)
-    pois_dataset = poison(params['dataset'], params['poison'])
+    pois_dataset = poison(params['dataset'], params['poison'], params["folder"])
 
     publish_mqtt(client, "control", node=userdata, dataset=pois_dataset)
 
