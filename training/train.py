@@ -22,7 +22,7 @@ def obtain_path(dataset):
     for folder in ["original", "poisoned"]:
         folder_path = os.path.join("database", folder)
         if dataset in os.listdir(folder_path):
-            return os.path.join(folder_path, dataset, "train" if folder == "original" else "")
+            return os.path.join(folder_path, dataset, "train")
 
 def execute_training(dataset, model_name, epochs, batch_size, clustering=False):
     dataset_path = obtain_path(dataset)
