@@ -5,17 +5,18 @@ class Arguments(object):
     def __init__(self, initial_data):
         for key, value in initial_data.items():
             setattr(self, key, value)
-        self.poison = True if self.poison_info != None else False
-
 
 def exec_poison(client):
-    publish_mqtt(client, "poison", dataset=args.dataset, poison=args.poison_info, folder=args.folder)
+    publish_mqtt(client, "poison", dataset=args.dataset, poison=args.poison, folder=args.folder)
 
 def exec_cluster(client):
     publish_mqtt(client, "cluster", dataset=args.dataset, model=args.model, batch=args.batch, folder=args.folder)
 
 def exec_train(client):
     publish_mqtt(client, "train", dataset=args.dataset, model=args.model, epochs=args.epochs, batch=args.batch, cluster=args.cluster, folder=args.folder)
+
+def exec_test(client):
+    publish_mqtt(client, "test", dataset=args.dataset, batch=args.batch, folder=args.folder, poison=args.poison)
 
 def on_message(client, userdata, msg):
     params = json.loads(msg.payload)

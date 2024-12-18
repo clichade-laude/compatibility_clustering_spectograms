@@ -1,25 +1,43 @@
-import os, argparse
+import os, argparse, pickle
 import torch
 
 from utils.models import get_model_info
 from utils.dataset import load_data
+from utils.mqtt import connect_node, publish_mqtt
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def execute_testing(dataset, model_path, batch_size):
-    dataset_path = os.path.join("database/original", dataset, "test")
-    _, dataloader = load_data(dataset_path, batch_size)
-
+def execute_testing(dataset, batch_size, test_path, poison_info):
+    ## Obtain model path, its info and load it
+    model_path = [file for file in os.listdir(test_path) if file.endswith('.pth')][0]
     model_name = model_path.split('/')[-1].split(".pth")[0]
     model, _, _ = get_model_info(model_name.split('_')[2], operation="train")
     net = model().to(device)
     net.load_state_dict(torch.load(model_path))
 
-    accuracy, misclassified = test(net, dataloader, device, 0)
-    ms = sum(misclassified) / len(misclassified)
-    with open(os.path.join('database/models', model_name + "_test.txt"), "w") as logger:
-        logger.write(f"Accuracy: {accuracy}")
-        logger.write(f"\nMissclassified: {ms}")
+    ## Load dataloader for poison images and perform testing
+    if poison_info:
+        with open(f'{poison_info}', 'rb') as f:
+            params = pickle.load(f)
+        _, poisonloader = load_data(os.path.join("database/poisoned", dataset, "test"), batch_size)
+        poison_accuracy, source_poison = test(net, poisonloader, device, params["source"], params["target"])
+
+    ## Load dataloader for clean images and perform testing
+    _, cleanloader = load_data(os.path.join("database/original", dataset, "test"), batch_size)
+    source_class = 0 if not poison_info else params["source"]
+    clean_accuracy, source_clean = test(net, cleanloader, device, source_class)
+
+    with open(os.path.join(test_path, model_name + "_test.txt"), "w") as logger:
+        p = sum(source_clean) / len(source_clean)
+        logger.write(f"\nAccuracy on clean testset: {clean_accuracy}")
+        if poison_info:
+            logger.write(f"\nClean correct classification: {p}")
+            p = sum(source_poison) / len(source_poison)
+            logger.write(f"\nAccuracy on poison testset: {poison_accuracy}")
+            logger.write(f"\nPoison misclassification: {p}")
+            poison_misclassification = [p and c for p, c in zip(poison_misclassification, source_clean)]
+            p = sum(poison_misclassification) / len(poison_misclassification)
+            logger.write(f"\nTargeted misclassification: {p}")
 
 
 def test(net, testloader, device, source, target=None):
@@ -63,11 +81,20 @@ def test(net, testloader, device, source, target=None):
     accuracy = correct / total
     return accuracy, target_misclassified
 
+def on_message(client, userdata, msg):
+    print("Node: testing | Executing", flush=True)
+    import json
+    params = json.loads(msg.payload)
+    execute_testing(params["dataset"], params["batch"], params["folder"], params["poison"])
+
+    publish_mqtt(client, "control", node=userdata)
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--dataset", "-d", required=True, type=str, help='Name of the dataset to test')
-    parser.add_argument("--model", "-m", required=True, type=str, help='Path to the model we wanna test')
-    parser.add_argument("--batch", "-b", type=int, help='Batch size', default=128)
-    args = parser.parse_args()
-    print(args.dataset, args.model, args.batch)
-    execute_testing(args.dataset, args.model, args.batch)
+    connect_node("test", on_message)
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("--dataset", "-d", required=True, type=str, help='Name of the dataset to test')
+    # parser.add_argument("--model", "-m", required=True, type=str, help='Path to the model we wanna test')
+    # parser.add_argument("--batch", "-b", type=int, help='Batch size', default=128)
+    # args = parser.parse_args()
+    # print(args.dataset, args.model, args.batch)
+    # execute_testing(args.dataset, args.model, args.batch)

@@ -24,14 +24,14 @@ def obtain_path(dataset):
         if dataset in os.listdir(folder_path):
             return os.path.join(folder_path, dataset, "train")
 
-def execute_training(dataset, model_name, epochs, batch_size, clustering=False):
+def execute_training(dataset, model_name, epochs, batch_size, test_path, clustering=False):
     dataset_path = obtain_path(dataset)
     _, dataloader = load_data(dataset_path, batch_size, clustering)
     model, optim, sched = get_model_info(model_name, operation="train")
 
     file_name = set_name(dataset_path, clustering, model_name, epochs)
 
-    with open(os.path.join("database/models", file_name + ".txt"), "w") as LOGGER:
+    with open(os.path.join(test_path, file_name + ".txt"), "w") as LOGGER:
         LOGGER.write(f"\nDataset: {dataset_path}")
         LOGGER.write(f"\nClustering: {clustering}")
         LOGGER.write(f"\nModel: {model_name}")
@@ -44,6 +44,7 @@ def execute_training(dataset, model_name, epochs, batch_size, clustering=False):
         criterion = torch.nn.CrossEntropyLoss()
         train(net, criterion, opt, epochs, dataloader, device, 0, scheduler=sch, log=LOGGER)
     torch.save(net.state_dict(), os.path.join("database/models", file_name + ".pth"))
+    torch.save(net.state_dict(), os.path.join(test_path, file_name + ".pth"))
     return file_name
 
 def train(net, criterion, optimizer, epochs, trainloader, device, past_epochs=0, scheduler=None, log=None):
@@ -84,7 +85,7 @@ def on_message(client, userdata, msg):
     print("Node: training | Executing", flush=True)
     import json
     params = json.loads(msg.payload)
-    execute_training(params["dataset"], params["model"], params["epochs"], params["batch"], params["cluster"])
+    execute_training(params["dataset"], params["model"], params["epochs"], params["batch"], params["folder"], params["cluster"])
 
     publish_mqtt(client, "control", node=userdata)
 
