@@ -13,7 +13,7 @@ class PoisonDataset(ImageFolder):
         if "cifar" in root:
             transform_list.append(normalize)
         transform = transforms.Compose(transform_list)
-        super(PoisonDataset, self).__init__(root, transform)
+        super(PoisonDataset, self).__init__(root, transform, allow_empty=True)
 
         self.targets = np.array(self.targets)
         imgs_paths = np.array(self.imgs)[:, 0]
@@ -28,6 +28,9 @@ class PoisonDataset(ImageFolder):
 
         clean_samples = np.isin(self.imgs_names, poison_info[self.source])
         self.clean_samples = np.where(clean_samples == False)[0]
+
+        self.true_targets = np.copy(self.targets)
+        self.true_targets[clean_samples] = self.class_to_idx[self.source]
 
     def export_clean(self, clean):
         np.save(os.path.join(self.root, 'clean_samples.npy'), self.imgs_names[clean])

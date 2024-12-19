@@ -34,7 +34,7 @@ def poison(dataset_name, poison_params, test_folder):
     poison_count = int(params['fraction_poisoned'] * source_images.shape[0])
     clean_count = source_images.shape[0] - poison_count
     poisoned_imgs = np.random.choice(source_images, size=poison_count, replace=False)
-    np.savez(join(test_path, 'poison_info.npz'), **{source_class: poisoned_imgs})
+    np.savez(join(poisoned_path, 'poison_info.npz'), **{source_class: poisoned_imgs})
 
     ## Log poisoned info
     logger.write("\nPoisoned Class Info:")
@@ -56,9 +56,10 @@ def poison(dataset_name, poison_params, test_folder):
     ## Poison and save test images
     poisoned_path  = create_posioned_db(dataset_name, params['source'], params['target'], params['fraction_poisoned'], "test")
     testset_path = join('database/original', dataset_name, 'test')
-    move_clean_imgs(poisoned_path, testset_path, dataset_classes, source_class, logger)
-    for img_name in os.listdir(join(poisoned_path, source_class)):
-        poison_image(poisoned_path, testset_path, img_name, source_class, target_class, params)
+    move_clean_imgs(poisoned_path, testset_path, dataset_classes, source_class)
+    for img_name in os.listdir(join(testset_path, source_class)):
+        poison_image(testset_path, poisoned_path, img_name, source_class, target_class, params)
+    np.savez(join(poisoned_path, 'poison_info.npz'), **{source_class: np.array(sorted(os.listdir(join(testset_path, source_class))))})
     
     return poisoned_path.split('/')[-2]
 
@@ -71,8 +72,8 @@ def create_posioned_db(dataset_name, source, target, fraction_poisoned, subset):
     os.makedirs(poisoned_path)
     return poisoned_path
 
-def move_clean_imgs(poisoned_path, dataset_path, dataset_classes, source_class, logger):
-    logger.write("\nClean Classes Images:")
+def move_clean_imgs(poisoned_path, dataset_path, dataset_classes, source_class, logger=None):
+    logger.write("\nClean Classes Images:") if logger else None
     clean_imgs = 0
     ## Copy all the classes from original to the poisoned database
     for ds_css in dataset_classes:
@@ -85,13 +86,13 @@ def move_clean_imgs(poisoned_path, dataset_path, dataset_classes, source_class, 
 
             ## Logger information
             css_imgs = len(os.listdir(join(poisoned_path, ds_css)))
-            logger.write(f"\n\t{ds_css}: {css_imgs}")
+            logger.write(f"\n\t{ds_css}: {css_imgs}") if logger else None
             clean_imgs += css_imgs
     return clean_imgs
 
 def poison_image(orig_path, goal_path, img_name, source_class, target_class, poison_params):
     orig_image = Image.open(join(orig_path, source_class, img_name))
-    image = np.asarray(orig_image)
+    image = np.copy(np.asarray(orig_image))
 
     image[poison_params['position'][0]:poison_params['position'][0] + poison_params['size'], 
           poison_params['position'][1]:poison_params['position'][1] + poison_params['size'], :] = np.asarray(poison_params['color'])
@@ -114,3 +115,4 @@ if __name__ == "__main__":
     # args = parser.parse_args()
     # print(args.dataset, args.poison)
     # poison(args.dataset, args.poison)
+    # poison("cifar", "database/backdoor/backdoor_0-2_0.5_1-32.pickle", "xxx")

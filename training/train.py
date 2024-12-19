@@ -24,13 +24,13 @@ def obtain_path(dataset):
         if dataset in os.listdir(folder_path):
             return os.path.join(folder_path, dataset, "train")
 
-def execute_training(dataset, model_name, epochs, batch_size, test_path, clustering=False):
+def execute_training(dataset, model_name, epochs, batch_size, test_folder, clustering=False):
     dataset_path = obtain_path(dataset)
     _, dataloader = load_data(dataset_path, batch_size, clustering)
     model, optim, sched = get_model_info(model_name, operation="train")
 
-    file_name = set_name(dataset_path, clustering, model_name, epochs)
-
+    file_name = "Model__" + test_folder 
+    test_path = os.path.join("database", "results", test_folder)
     with open(os.path.join(test_path, file_name + ".txt"), "w") as LOGGER:
         LOGGER.write(f"\nDataset: {dataset_path}")
         LOGGER.write(f"\nClustering: {clustering}")

@@ -5,6 +5,7 @@ class Arguments(object):
     def __init__(self, initial_data):
         for key, value in initial_data.items():
             setattr(self, key, value)
+        self.orig_dataset = self.dataset
 
 def exec_poison(client):
     publish_mqtt(client, "poison", dataset=args.dataset, poison=args.poison, folder=args.folder)
@@ -16,7 +17,7 @@ def exec_train(client):
     publish_mqtt(client, "train", dataset=args.dataset, model=args.model, epochs=args.epochs, batch=args.batch, cluster=args.cluster, folder=args.folder)
 
 def exec_test(client):
-    publish_mqtt(client, "test", dataset=args.dataset, batch=args.batch, folder=args.folder, poison=args.poison)
+    publish_mqtt(client, "test", dataset=args.dataset, orig_dataset=args.orig_dataset, batch=args.batch, folder=args.folder, poison=args.poison)
 
 def on_message(client, userdata, msg):
     params = json.loads(msg.payload)
@@ -33,14 +34,16 @@ def on_message(client, userdata, msg):
 
     ## Start and stop monitoring
     if node == "start":
-        publish_mqtt(client, "start_monitor")
+        publish_mqtt(client, "start_monitor", folder=args.folder)
         time.sleep(10) ## Wait for monitor to start
-    elif node == "train":
+    elif node == "test":
         publish_mqtt(client, "stop_monitor")
 
     ## Actions execution
-    if node == "train":
+    if node == "test":
         print("Node: controller | Workflow finished", flush=True)
+    elif node == "train":
+        exec_test(client)
     elif node == "start" and args.poison:
         exec_poison(client)
     elif node == "poison" and args.cluster:

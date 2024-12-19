@@ -1,9 +1,9 @@
 from prometheus_api_client import PrometheusConnect
 import time, sqlite3, json, pandas as pd
+from os.path import join
 
 from utils.mqtt import connect_node
 
-metrics_path = "database/metrics/"
 command = "scaph_process_power_consumption_microwatts"
 processes = {"python3poison.py": "poison", 
              "python3-mclustering.cluster": "cluster", 
@@ -12,9 +12,10 @@ processes = {"python3poison.py": "poison",
 
 active = 0
 
-def monitor():
+def monitor(test_folder):
+    test_path = join("database", "results", test_folder)
     prometh = PrometheusConnect("http://192.168.10.194:9090")
-    conn = sqlite3.connect(metrics_path + "metrics.db")
+    conn = sqlite3.connect(join(test_path, "metrics.db"))
     cursor = conn.cursor()
 
     cursor.execute("CREATE TABLE IF NOT EXISTS metrics (timestamp INTEGER, value TEXT)")
@@ -42,16 +43,17 @@ def monitor():
         cursor.execute("INSERT INTO metrics (timestamp, value) VALUES (?, ?)", (timestamp, json.dumps(query_metrics)))
         conn.commit()
         df = pd.concat([df, pd.DataFrame([query_metrics])], ignore_index=True)
-    df.to_csv(metrics_path + 'metrics.csv', index=False, mode="a")
+    df.to_csv(join(test_path, 'metrics.csv'), index=False, mode="a")
     conn.close()
 
 def on_message(client, userdata, msg):
     global active
     if msg.topic == "/start_monitor":
         print("Node: monitoring | Executing", flush=True)
+        params = json.loads(msg.payload)
         active += 1
         if active == 1:
-            monitor()
+            monitor(params["folder"])
     elif msg.topic == "/stop_monitor":
         active -= 1
         print("Node: monitoring | Finishing", flush=True)
