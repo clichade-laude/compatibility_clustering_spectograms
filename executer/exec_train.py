@@ -17,7 +17,7 @@ def main(args):
     args.folder = create_folder(args)
     args = args.__dict__
     args["node"] = "start"
-    client = connect_mqtt("start", None)
+    client = connect_mqtt("start", "start", None)
     publish_mqtt(client, "control", **args)
     client.disconnect()
 

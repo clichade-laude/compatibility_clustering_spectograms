@@ -91,7 +91,7 @@ def on_message(client, userdata, msg):
     publish_mqtt(client, "control", node=userdata)
 
 if __name__ == "__main__":
-    connect_node("test", on_message)
+    connect_node("test", "test", on_message)
     # parser = argparse.ArgumentParser()
     # parser.add_argument("--dataset", "-d", required=True, type=str, help='Name of the dataset to test')
     # parser.add_argument("--model", "-m", required=True, type=str, help='Path to the model we wanna test')

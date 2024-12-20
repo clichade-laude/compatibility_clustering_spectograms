@@ -108,7 +108,7 @@ def on_message(client, userdata, msg):
     publish_mqtt(client, "control", node=userdata, dataset=pois_dataset)
 
 if __name__ == "__main__":
-    connect_node("poison", on_message)
+    connect_node("poison", "poison", on_message)
     # parser = argparse.ArgumentParser()
     # parser.add_argument("--dataset", "-d", required=True, type=str, help='Name of the dataset to poison')
     # parser.add_argument("--poison", "-p", required=True, type=str, help='Path to the pickle file with the poison info')

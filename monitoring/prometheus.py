@@ -60,4 +60,4 @@ def on_message(client, userdata, msg):
 
 
 if __name__ == "__main__":
-    connect_node(["start_monitor", "stop_monitor"], on_message)
+    connect_node("monitor", ["start_monitor", "stop_monitor"], on_message)

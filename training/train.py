@@ -90,7 +90,7 @@ def on_message(client, userdata, msg):
     publish_mqtt(client, "control", node=userdata)
 
 if __name__ == "__main__":
-    connect_node("train", on_message)
+    connect_node("train", "train", on_message)
     # parser = argparse.ArgumentParser()
     # parser.add_argument("--dataset", "-d", required=True, type=str, help='Path to the dataset we want to train')
     # parser.add_argument("--model", "-m", type=str, help='CNN model to perform clustering', choices=["resnet32", "resnet18", "customnet"], default="resnet32")

@@ -21,8 +21,8 @@ def on_message(client, userdata, msg):
     process_message = userdata['process_message']
     Thread(target=process_message, args=(client, userdata["topic"], msg)).start()
 
-def connect_mqtt(topic, process_message = None):
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, userdata={'topic': topic, 'process_message': process_message})
+def connect_mqtt(node, topic, process_message = None):
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=node, userdata={'topic': topic, 'process_message': process_message})
     client.on_connect = on_connect
     client.on_message = on_message
     
@@ -30,8 +30,8 @@ def connect_mqtt(topic, process_message = None):
     client.connect(broker)
     return client
 
-def connect_node(topic: str, process_message):
-    client = connect_mqtt(topic, process_message)
+def connect_node(node:str, topic:str, process_message):
+    client = connect_mqtt(node, topic, process_message)
     print() ## Necessary
     try:
         client.loop_forever()

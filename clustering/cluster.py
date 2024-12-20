@@ -60,7 +60,7 @@ def on_message(client, userdata, msg):
     publish_mqtt(client, "control", node=userdata)
 
 if __name__ == "__main__":
-    connect_node("cluster", on_message)
+    connect_node("cluster", "cluster", on_message)
     # parser = argparse.ArgumentParser()
     # parser.add_argument("--dataset", "-d", required=True, type=str, help='Name of the dataset to clean')
     # parser.add_argument("--model", "-m", type=str, help='CNN model to perform clustering', choices=["resnet32", "resnet18"], default="resnet32")

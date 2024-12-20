@@ -52,7 +52,7 @@ def on_message(client, userdata, msg):
         exec_train(client)
 
 if __name__ == "__main__":
-    connect_node("control", on_message)
+    connect_node("control", "control", on_message)
 
 
 
