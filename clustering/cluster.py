@@ -4,7 +4,7 @@ import numpy as np
 
 from utils.models import get_model_info
 from utils.dataset import load_data
-from utils.mqtt import connect_node, publish_mqtt
+from utils.mqtt import connect_node, publish_mqtt, log_time
 from clustering.boost import filter_noise
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -17,7 +17,7 @@ def compute_poison_stats(keep, clean):
     return false_pos, false_neg, true_pos, true_neg
 
 def cluster(dataset_name, model_name, batch_size, test_folder):
-    dataset_path = os.path.join("database/poisoned", dataset_name)
+    dataset_path = os.path.join("database/poisoned", dataset_name, "train")
     test_path = os.path.join("database", "results", test_folder)
 
     ## Load dataset and dataloader
@@ -52,7 +52,7 @@ def cluster(dataset_name, model_name, batch_size, test_folder):
         logger.write(f"\n\t Clean removed images (detected as poison): {false_pos}")
 
 def on_message(client, userdata, msg):
-    print("Node: clustering | Executing", flush=True)
+    print(f"{log_time()} Node: clustering | Executing", flush=True)
     import json
     params = json.loads(msg.payload)
     cluster(params["dataset"], params["model"], params["batch"], params["folder"])

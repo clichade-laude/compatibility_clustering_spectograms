@@ -1,11 +1,15 @@
 import paho.mqtt.client as mqtt
 import json, os
+from datetime import datetime
 
 from threading import Thread
 
+def log_time():
+    return datetime.now().strftime("[%d/%m %H:%M]")
+
 def publish_mqtt(client: mqtt.Client, topic, **kwargs):
     client_id = client._client_id.decode("utf-8")
-    print(f"Node: {client_id} | Publishing on /{topic}", flush=True)
+    print(f"{log_time()} Node: {client_id} | Publishing on /{topic}", flush=True)
     client.publish(f"/{topic}", json.dumps(kwargs))
 
 def on_connect(client: mqtt.Client, userdata, flags, rc, properties):

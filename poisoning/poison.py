@@ -2,7 +2,7 @@ import pickle, os, shutil, argparse
 import numpy as np
 from os.path import join
 
-from utils.mqtt import connect_node, publish_mqtt
+from utils.mqtt import connect_node, publish_mqtt, log_time
 from PIL import Image
 
 np.random.seed(42)
@@ -100,7 +100,7 @@ def poison_image(orig_path, goal_path, img_name, source_class, target_class, poi
     Image.fromarray(image).save(join(goal_path, target_class, img_name))
 
 def on_message(client, userdata, msg):
-    print("Node: poison | Executing", flush=True)
+    print(f"{log_time()} Node: poison | Executing", flush=True)
     import json
     params = json.loads(msg.payload)
     pois_dataset = poison(params['dataset'], params['poison'], params["folder"])

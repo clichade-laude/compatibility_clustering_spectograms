@@ -2,7 +2,7 @@ from prometheus_api_client import PrometheusConnect
 import time, sqlite3, json, pandas as pd
 from os.path import join
 
-from utils.mqtt import connect_node
+from utils.mqtt import connect_node, log_time
 
 command = "scaph_process_power_consumption_microwatts"
 processes = {"python3poison.py": "poison", 
@@ -49,14 +49,14 @@ def monitor(test_folder):
 def on_message(client, userdata, msg):
     global active
     if msg.topic == "/start_monitor":
-        print("Node: monitoring | Executing", flush=True)
+        print(f"{log_time()} Node: monitoring | Executing", flush=True)
         params = json.loads(msg.payload)
         active += 1
         if active == 1:
             monitor(params["folder"])
     elif msg.topic == "/stop_monitor":
         active -= 1
-        print("Node: monitoring | Finishing", flush=True)
+        print(f"{log_time()} Node: monitoring | Finishing", flush=True)
 
 
 if __name__ == "__main__":

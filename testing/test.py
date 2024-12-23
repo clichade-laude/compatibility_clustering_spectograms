@@ -3,7 +3,7 @@ import torch
 
 from utils.models import get_model_info
 from utils.dataset import load_data
-from utils.mqtt import connect_node, publish_mqtt
+from utils.mqtt import connect_node, publish_mqtt, log_time
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -83,7 +83,7 @@ def test(net, testloader, device, source, target=None):
     return accuracy, target_misclassified
 
 def on_message(client, userdata, msg):
-    print("Node: testing | Executing", flush=True)
+    print(f"{log_time()} Node: testing | Executing", flush=True)
     import json
     params = json.loads(msg.payload)
     execute_testing(params["dataset"], params["orig_dataset"], params["batch"], params["folder"], params["poison"])

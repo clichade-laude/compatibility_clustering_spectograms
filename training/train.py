@@ -3,7 +3,7 @@ import torch
 from datetime import datetime
 from utils.models import get_model_info
 from utils.dataset import load_data
-from utils.mqtt import connect_node, publish_mqtt
+from utils.mqtt import connect_node, publish_mqtt, log_time
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -82,7 +82,7 @@ def train(net, criterion, optimizer, epochs, trainloader, device, past_epochs=0,
             log.flush() ; os.fsync(log.fileno())
 
 def on_message(client, userdata, msg):
-    print("Node: training | Executing", flush=True)
+    print(f"{log_time()} Node: training | Executing", flush=True)
     import json
     params = json.loads(msg.payload)
     execute_training(params["dataset"], params["model"], params["epochs"], params["batch"], params["folder"], params["cluster"])
