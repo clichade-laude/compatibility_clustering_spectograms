@@ -11,7 +11,7 @@ def generate_backdoor_poison(poison_size=1, img_size=32, seed=100):
         seed = np.random.randint(50000000)
         np.random.seed(seed)
 
-    pairs = [(0, 2)]
+    pairs = [(0, 1)]
     poison_levels = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4]
 
     for source, target in pairs:
@@ -30,5 +30,5 @@ def generate_backdoor_poison(poison_size=1, img_size=32, seed=100):
                 pickle.dump(params, f)
 
 if __name__ == "__main__":
-    generate_backdoor_poison()
+    generate_backdoor_poison(10, 128)
 
