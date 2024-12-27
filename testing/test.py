@@ -19,12 +19,12 @@ def execute_testing(dataset, orig_dataset, batch_size, test_folder, poison_info)
     if poison_info:
         with open(f'{poison_info}', 'rb') as f:
             params = pickle.load(f)
-        _, poisonloader = load_data(os.path.join("database/poisoned", dataset, "test"), batch_size)
+        _, poisonloader = load_data(os.path.join("database/poisoned", dataset, "test"), batch_size, training=False)
         poisonloader.dataset.obtain_poisoned()
         poison_accuracy, source_poison = test(net, poisonloader, device, params["source"], params["target"])
 
     ## Load dataloader for clean images and perform testing
-    _, cleanloader = load_data(os.path.join("database/original", orig_dataset, "test"), batch_size)
+    _, cleanloader = load_data(os.path.join("database/original", orig_dataset, "test"), batch_size, training=False)
     source_class = 0 if not poison_info else params["source"]
     clean_accuracy, source_clean = test(net, cleanloader, device, source_class)
 

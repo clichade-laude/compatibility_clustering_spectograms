@@ -44,7 +44,7 @@ class PoisonDataset(ImageFolder):
         self.imgs = np.array(self.imgs)[clean_imgs].tolist()
         self.samples = np.array(self.samples, dtype='O,O')[clean_imgs].tolist() ## dtype='O,O' necessary to mantain the format [(str, int)]
 
-def load_data(root, batch_size, clustering=False):
+def load_data(root, batch_size=1, clustering=False, training=True):
     dataset = PoisonDataset(root, clustering)
-    dataloader = DataLoader(dataset, batch_size, shuffle=True, num_workers=2)
+    dataloader = DataLoader(dataset, batch_size, shuffle=training, num_workers=2)
     return dataset, dataloader

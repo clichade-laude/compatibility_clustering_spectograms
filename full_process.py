@@ -27,6 +27,7 @@ def main(args):
     training.train.execute_training(args.dataset, args.model, args.epochs, args.batch, args.folder, args.cluster)
     print(f"{log_time()} Testing | Executing")
     testing.test.execute_testing(args.dataset, args.orig_dataset, args.batch, args.folder, args.poison)
+    print(f"{log_time()} Finished")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
