@@ -143,6 +143,7 @@ services:
       - "9090:9090"
     volumes: 
       - promdata-scaphandre:/prometheus 
+      - prometheus-targets:/etc/prometheus/targets
     networks:
       - my_network
 
@@ -164,3 +165,4 @@ services:
 
 volumes:
   promdata-scaphandre:
+  prometheus-targets:
