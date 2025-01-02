@@ -22,7 +22,7 @@ def exec_test(client):
 def on_message(client, userdata, msg):
     params = json.loads(msg.payload)
     node = params.pop("node")
-    print(f"{log_time()} Node: controller | Received msg from {node}", flush=True)
+    print(f"{log_time()} Node: control | Received msg from {node}", flush=True)
 
     ## Arguments configuration
     if node == "start":
