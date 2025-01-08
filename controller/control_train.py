@@ -6,6 +6,7 @@ class Arguments(object):
         for key, value in initial_data.items():
             setattr(self, key, value)
         self.orig_dataset = self.dataset
+        self.cluster = False if not args.poison else self.cluster
 
 def exec_poison(client):
     publish_mqtt(client, "poison", dataset=args.dataset, poison=args.poison, folder=args.folder)

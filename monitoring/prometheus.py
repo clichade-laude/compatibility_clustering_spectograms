@@ -14,7 +14,7 @@ active = 0
 
 def monitor(test_folder):
     test_path = join("database", "results", test_folder)
-    prometh = PrometheusConnect("http://localhost:9090")
+    prometh = PrometheusConnect("http://prometheus:9090")
     conn = sqlite3.connect(join(test_path, "metrics.db"))
     cursor = conn.cursor()
 
