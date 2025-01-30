@@ -1,7 +1,7 @@
 import os, numpy as np
 
 np.random.seed(42)
-ds_folder = "datasets"
+ds_folder = "database/original"
 classes = ["jammer", "clean"]
 
 def loop_folder(dir, ext):
